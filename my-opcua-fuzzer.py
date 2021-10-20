@@ -17,7 +17,7 @@ def main():
 # -----------------------MSGs DEF---------------------
 # TODO use constants for msgs definitions
 def hello_definition():
-    s_initialize('Hello')
+    s_initialize('Hello Msg')
 
     with s_block('h-header'):
         s_bytes(b'HEL', name='Hello magic', fuzzable=False)
@@ -30,7 +30,7 @@ def hello_definition():
         s_dword(65536, name='Send buffer size')
         s_dword(0, name='Max message size')
         s_dword(0, name='Max chunk count')
-        endpoint = ENDPOINT_STRING
+        endpoint = constants.ENDPOINT_STRING
         s_dword(len(endpoint), name='Url length')
         s_bytes(endpoint, name='Endpoint url')
 
