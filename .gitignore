@@ -1,1 +1,6 @@
+# Python related
+__pycache__/
 env/
+
+# Boofuzz related
+boofuzz-results/
