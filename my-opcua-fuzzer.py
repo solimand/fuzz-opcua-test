@@ -1,38 +1,63 @@
 #!/usr/bin/env python3
 
-import constants
+from constants import HELLO_MSG_BODY_NAME, HOST_ADDR, OPC_UA_PORT, ENDPOINT_STRING, CHUNK_TYPE
+from constants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
+from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME
 
 from boofuzz import *
 
 def main():
     print("starting fuzzer")
     session = Session(
-    target=Target(
-        connection=TCPSocketConnection(constants.HOST_ADDR, constants.OPC_UA_PORT)))
+        target=Target(
+            connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
+        index_start=0,
+        index_end=3)
 
-    #print("DBG: "+str(session.web_port))
     print_dbg(session.web_port)
-    print_dbg("close")
+
+    hello_msg()
+
+    session.connect(s_get(HELLO_MSG_NAME))
+
+    with open('./myopcuaTest.png', 'wb') as file:
+        file.write(session.render_graph_graphviz().create_png())
+
+    try:
+        session.fuzz()
+    except KeyboardInterrupt:
+        pass
 
 # -----------------------MSGs DEF---------------------
-# TODO use constants for msgs definitions
-def hello_definition():
-    s_initialize('Hello Msg')
+def hello_msg():
+    s_initialize(HELLO_MSG_NAME)
 
-    with s_block('h-header'):
-        s_bytes(b'HEL', name='Hello magic', fuzzable=False)
-        s_bytes(b'F', name='Chunk type', fuzzable=False)
-        s_size('h-body', offset=8, name='body size', fuzzable=False)
+    with s_block(HELLO_MSG_HEADER_NAME):
+        s_bytes(HELLO_MSG_TYPE, name='Hello magic', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(HELLO_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
-    with s_block('h-body'):
+    with s_block(HELLO_MSG_BODY_NAME):
         s_dword(0, name='Protocol version')
         s_dword(65536, name='Receive buffer size')
         s_dword(65536, name='Send buffer size')
         s_dword(0, name='Max message size')
         s_dword(0, name='Max chunk count')
-        endpoint = constants.ENDPOINT_STRING
-        s_dword(len(endpoint), name='Url length')
-        s_bytes(endpoint, name='Endpoint url')
+        s_dword(len(ENDPOINT_STRING), name='Url length')
+        s_bytes(ENDPOINT_STRING, name='Endpoint url')
+
+def close_msg():
+    s_initialize(CLOSE_MSG_NAME)
+
+    with s_block(CLOSE_MSG_HEADER_NAME):
+        s_bytes(CLOSE_MSG_TYPE, name='Close channel magic', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(CLOSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(CLOSE_MSG_BODY_NAME):
+        s_dword(0, name='Protocol version')
+
+
 
 # -----------------------UTILS---------------------
 def print_dbg(msg):
