@@ -3,6 +3,7 @@ HOST_ADDR = "150.140.188.188"
 OPC_UA_PORT = 4840
 ENDPOINT_STRING = 'opc.tcp://localhost:4840/'.encode('utf-8')
 CHUNK_TYPE = b'F'
+UNIX_TIME = 116444736000000000  # January 1, 1970
 
 # hello msg related
 HELLO_MSG_TYPE = b'HEL'

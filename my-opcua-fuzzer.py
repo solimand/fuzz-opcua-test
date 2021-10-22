@@ -3,10 +3,16 @@
 from constants import HELLO_MSG_BODY_NAME, HOST_ADDR, OPC_UA_PORT, ENDPOINT_STRING, CHUNK_TYPE
 from constants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
 from constants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
+from constants import UNIX_TIME
+
 #from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME
 
 # TODO import only boofuz needed modules
 from boofuzz import *
+
+# Dates
+from datetime import datetime
+from calendar import timegm
 
 def main():
     print("starting fuzzer")
@@ -69,7 +75,8 @@ def open_msg():
         s_bytes(b'\x01\x00\xbe\x01', name='Type id')
         #OpenSecureChannelRequest > RequestHeader > NodeId
         s_bytes(b'\x00\x00', name='Authentication Token')
-        # TODO timestamp
+        s_qword(get_weird_opc_timestamp(), name='timestamp')
+        # TODO remaining fields
 
 
 
@@ -90,6 +97,12 @@ def open_msg():
 # -----------------------UTILS---------------------
 def print_dbg(msg):
     print("DBG: "+str(msg))
+
+def opcua_time():
+    now = datetime.now()
+    res_time = UNIX_TIME + (timegm(now.timetuple()) * 10000000)
+    return res_time + (now.microsecond * 10)
+
 
 if __name__ == "__main__":
     main()
