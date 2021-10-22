@@ -2,8 +2,10 @@
 
 from constants import HELLO_MSG_BODY_NAME, HOST_ADDR, OPC_UA_PORT, ENDPOINT_STRING, CHUNK_TYPE
 from constants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
+from constants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME
 from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME
 
+# TODO import only boofuz needed modules
 from boofuzz import *
 
 def main():
@@ -12,7 +14,7 @@ def main():
         target=Target(
             connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
         index_start=0,
-        index_end=3)
+        index_end=3000)
 
     print_dbg(session.web_port)
 
@@ -46,7 +48,19 @@ def hello_msg():
         s_dword(len(ENDPOINT_STRING), name='Url length')
         s_bytes(ENDPOINT_STRING, name='Endpoint url')
 
-def close_msg():
+def open_msg():
+    s_initialize(OPEN_MSG_NAME)
+
+    with s_block(OPEN_MSG_HEADER_NAME):
+        s_bytes(OPEN_MSG_TYPE, name='Open magic', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(OPEN_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(OPEN_MSG_BODY_NAME):
+        s_dword(0, name='channel id')
+        
+
+'''def close_msg():
     s_initialize(CLOSE_MSG_NAME)
 
     with s_block(CLOSE_MSG_HEADER_NAME):
@@ -55,7 +69,7 @@ def close_msg():
         s_size(CLOSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
     with s_block(CLOSE_MSG_BODY_NAME):
-        s_dword(0, name='Protocol version')
+        s_dword(0, name='Protocol version')'''
 
 
 

@@ -10,6 +10,12 @@ HELLO_MSG_NAME = 'Hello'
 HELLO_MSG_HEADER_NAME = 'h-header'
 HELLO_MSG_BODY_NAME = 'h-body'
 
+# open secure channel req related
+OPEN_MSG_TYPE = b'OPN'
+OPEN_MSG_NAME = 'Open'
+OPEN_MSG_HEADER_NAME = 'o-header'
+OPEN_MSG_BODY_NAME = 'o-body'
+
 # close msg related
 CLOSE_MSG_TYPE = b'CLO'
 CLOSE_MSG_NAME = 'Close'
