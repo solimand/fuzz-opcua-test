@@ -15,6 +15,7 @@ OPEN_MSG_TYPE = b'OPN'
 OPEN_MSG_NAME = 'Open'
 OPEN_MSG_HEADER_NAME = 'o-header'
 OPEN_MSG_BODY_NAME = 'o-body'
+OPEN_MSG_SEC_POLICY_NONE = 'http://opcfoundation.org/UA/SecurityPolicy#None'.encode('utf-8')
 
 # close msg related
 CLOSE_MSG_TYPE = b'CLO'

@@ -4,3 +4,4 @@ env/
 
 # Boofuzz related
 boofuzz-results/
+*.png

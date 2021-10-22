@@ -2,8 +2,8 @@
 
 from constants import HELLO_MSG_BODY_NAME, HOST_ADDR, OPC_UA_PORT, ENDPOINT_STRING, CHUNK_TYPE
 from constants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
-from constants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME
-from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME
+from constants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
+#from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME
 
 # TODO import only boofuz needed modules
 from boofuzz import *
@@ -14,7 +14,7 @@ def main():
         target=Target(
             connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
         index_start=0,
-        index_end=3000)
+        index_end=3)
 
     print_dbg(session.web_port)
 
@@ -58,7 +58,21 @@ def open_msg():
 
     with s_block(OPEN_MSG_BODY_NAME):
         s_dword(0, name='channel id')
-        
+        s_dword(len(OPEN_MSG_SEC_POLICY_NONE), name='uri length')
+        s_bytes(OPEN_MSG_SEC_POLICY_NONE, name='security policy uri')
+        #for following values refer to docs/MsgFormats/OpenSecureChannel
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='sender certificate')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='receiver certificate thumbprint')
+        s_dword(1, name='sequence number')
+        s_dword(1, name='request id')
+        #Encodable Obj > Expanded NodeID
+        s_bytes(b'\x01\x00\xbe\x01', name='Type id')
+        #OpenSecureChannelRequest > RequestHeader > NodeId
+        s_bytes(b'\x00\x00', name='Authentication Token')
+        # TODO timestamp
+
+
+
 
 '''def close_msg():
     s_initialize(CLOSE_MSG_NAME)

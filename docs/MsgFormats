@@ -1,0 +1,51 @@
+#---OPEN-SECURE-CHANNEL-OPN---
+OpcUa Binary Protocol
+    Message Type: OPN
+    Chunk Type: F
+    Message Size: 133
+    SecureChannelId: 0
+    SecurityPolicyUri: http://opcfoundation.org/UA/SecurityPolicy#None
+    SenderCertificate: <MISSING>[OpcUa Null ByteString]
+    ReceiverCertificateThumbprint: <MISSING>[OpcUa Null ByteString]
+    SequenceNumber: 51
+    RequestId: 1
+    Message : Encodeable Object                                                 --->Not a field
+        TypeId : ExpandedNodeId                                                 --->Not a field
+            NodeId EncodingMask: Four byte encoded Numeric (0x01)               --->01
+            NodeId Namespace Index: 0                                           --->00
+            NodeId Identifier Numeric: OpenSecureChannelRequest (446)           --->01BE--->BE01
+        OpenSecureChannelRequest                                                --->Not a field
+            RequestHeader: RequestHeader                                        --->Not a field
+                AuthenticationToken: NodeId                                     --->Not a field
+                    .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)    --->00
+                    Identifier Numeric: 0                                       --->00
+                Timestamp: Oct 22, 2021 15:23:20.617548700 CEST
+                RequestHandle: 0
+                Return Diagnostics: 0x00000000
+                    .... .... .... ...0 = ServiceLevel / SymbolicId: False
+                    .... .... .... ..0. = ServiceLevel / LocalizedText: False
+                    .... .... .... .0.. = ServiceLevel / AdditionalInfo: False
+                    .... .... .... 0... = ServiceLevel / Inner StatusCode: False
+                    .... .... ...0 .... = ServiceLevel / Inner Diagnostics: False
+                    .... .... ..0. .... = OperationLevel / SymbolicId: False
+                    .... .... .0.. .... = OperationLevel / LocalizedText: False
+                    .... .... 0... .... = OperationLevel / AdditionalInfo: False
+                    .... ...0 .... .... = OperationLevel / Inner StatusCode: False
+                    .... ..0. .... .... = OperationLevel / Inner Diagnostics: False
+                AuditEntryId: [OpcUa Null String]
+                TimeoutHint: 0
+                AdditionalHeader: ExtensionObject
+                    TypeId: ExpandedNodeId
+                        EncodingMask: 0x00, EncodingMask: Two byte encoded Numeric
+                            .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
+                            .0.. .... = has server index: False
+                            0... .... = has namespace uri: False
+                        Identifier Numeric: 0
+                    EncodingMask: 0x00
+                        .... ...0 = has binary body: False
+                        .... ..0. = has xml body: False
+            ClientProtocolVersion: 0
+            SecurityTokenRequestType: Issue (0x00000000)
+            MessageSecurityMode: None (0x00000001)
+            ClientNonce: 00
+            RequestedLifetime: 300000
