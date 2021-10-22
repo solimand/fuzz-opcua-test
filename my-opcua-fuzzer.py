@@ -75,7 +75,7 @@ def open_msg():
         s_bytes(b'\x01\x00\xbe\x01', name='Type id')
         #OpenSecureChannelRequest > RequestHeader > NodeId
         s_bytes(b'\x00\x00', name='Authentication Token')
-        s_qword(get_weird_opc_timestamp(), name='timestamp')
+        s_qword(opcua_time(), name='timestamp')
         # TODO remaining fields
 
 
