@@ -1,5 +1,7 @@
-#---OPEN-SECURE-CHANNEL-OPN-Req---
-OpcUa Binary Protocol
+# Message Formats from Wireshark tcpdump
+
+## OPEN-SECURE-CHANNEL-OPN-Req 
+
     Message Type: OPN
     Chunk Type: F
     Message Size: 133
@@ -50,8 +52,8 @@ OpcUa Binary Protocol
             ClientNonce: 00                                                     --->??
             RequestedLifetime: 300000                                           --->??
 
-#---GET-ENDPOINTS-MSG-Req---
-OpcUa Binary Protocol
+# GET-ENDPOINTS-MSG-Req
+
     Message Type: MSG
     Chunk Type: F
     Message Size: 100

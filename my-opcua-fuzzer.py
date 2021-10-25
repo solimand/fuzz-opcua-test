@@ -11,6 +11,9 @@ from constants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET
 # TODO import only boofuz needed modules
 from boofuzz import *
 
+# struct — Interpret bytes as packed binary data
+import struct
+
 # Dates
 from datetime import datetime
 from calendar import timegm
