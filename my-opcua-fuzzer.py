@@ -5,6 +5,7 @@ from constants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HEL
 from constants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
 from constants import UNIX_TIME, COMMON_MSG_TYPE, PNG_GRAPH_OUT_FILE
 from constants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET_ENDPOINTS_MSG_BODY_NAME
+from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME
 
 from boofuzz import s_initialize, s_bytes, s_dword, s_get, s_block, s_size, s_qword
 from boofuzz import Session, Target, TCPSocketConnection
@@ -22,7 +23,7 @@ def main():
         target=Target(
             connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
         index_start=0,
-        index_end=3)
+        index_end=300)
 
     print_dbg(session.web_port)
 
@@ -30,7 +31,7 @@ def main():
 
     session.connect(s_get(HELLO_MSG_NAME))
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
-    #session.connect(s_get(OPEN_MSG_NAME), s_get('CloseChannel'), callback=open_callback)
+    #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     
     # session graph PNG creation
     #with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
@@ -93,6 +94,31 @@ def open_msg():
         s_bytes(b'\x00\x00\x00\x00', name='client nonce')
         s_dword(3600000, name='requested lifetime')
 
+def close_msg():
+    s_initialize(CLOSE_MSG_NAME)
+
+    with s_block(CLOSE_MSG_HEADER_NAME):
+        s_bytes(CLOSE_MSG_TYPE, name='Close msg', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(CLOSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(CLOSE_MSG_BODY_NAME):
+        s_dword(0, name='secure channel id', fuzzable=False)
+        s_dword(4, name='secure token id', fuzzable=False)
+        s_dword(2, name='secure sequence number', fuzzable=False)
+        s_dword(2, name='secure request id', fuzzable=False)
+        # type id
+        s_bytes(b'\x01\x00' + struct.pack('<H', 452), name='Type id', fuzzable=False)
+        # request header
+        s_bytes(b'\x00\x00', name='authentication token')
+        s_qword(opcua_time(), name='timestamp')
+        s_dword(1, name='request handle')
+        s_dword(0, name='return diagnostics')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
+        s_dword(10000, name='timeout hint')
+        s_bytes(b'\x00\x00\x00', name='additional header')
+
+
 def get_endpoints():
     s_initialize(GET_ENDPOINTS_MSG_NAME)
 
@@ -106,7 +132,8 @@ def get_endpoints():
         s_dword(4, name='secure token id', fuzzable=False)
         s_dword(2, name='secure sequence number', fuzzable=False)
         s_dword(2, name='secure request id', fuzzable=False)
-        '''???'''
+        # Type ID
+        s_bytes(b'\x01\x00' + struct.pack('<H', 428), name='Type id', fuzzable=False)
         # Req header
         s_bytes(b'\x00\x00', name='authentication token')
         s_qword(opcua_time(), name='timestamp')

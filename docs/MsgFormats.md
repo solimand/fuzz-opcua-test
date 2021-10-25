@@ -52,6 +52,50 @@
             ClientNonce: 00                                                     --->??
             RequestedLifetime: 300000                                           --->??
 
+# CLOSE-MSG-Req
+    Message Type: CLO
+    Chunk Type: F
+    Message Size: 57
+    SecureChannelId: 3
+    Security Token Id: 4
+    Security Sequence Number: 53
+    Security RequestId: 3
+    Message : Encodeable Object
+        TypeId : ExpandedNodeId
+            NodeId EncodingMask: Four byte encoded Numeric (0x01)
+            NodeId Namespace Index: 0
+            NodeId Identifier Numeric: CloseSecureChannelRequest (452)
+        CloseSecureChannelRequest
+            RequestHeader: RequestHeader
+                AuthenticationToken: NodeId
+                    .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
+                    Identifier Numeric: 0
+                Timestamp: Oct 22, 2021 15:23:20.618928300 CEST
+                RequestHandle: 0
+                Return Diagnostics: 0x00000000
+                    .... .... .... ...0 = ServiceLevel / SymbolicId: False
+                    .... .... .... ..0. = ServiceLevel / LocalizedText: False
+                    .... .... .... .0.. = ServiceLevel / AdditionalInfo: False
+                    .... .... .... 0... = ServiceLevel / Inner StatusCode: False
+                    .... .... ...0 .... = ServiceLevel / Inner Diagnostics: False
+                    .... .... ..0. .... = OperationLevel / SymbolicId: False
+                    .... .... .0.. .... = OperationLevel / LocalizedText: False
+                    .... .... 0... .... = OperationLevel / AdditionalInfo: False
+                    .... ...0 .... .... = OperationLevel / Inner StatusCode: False
+                    .... ..0. .... .... = OperationLevel / Inner Diagnostics: False
+                AuditEntryId: [OpcUa Null String]
+                TimeoutHint: 0
+                AdditionalHeader: ExtensionObject
+                    TypeId: ExpandedNodeId
+                        EncodingMask: 0x00, EncodingMask: Two byte encoded Numeric
+                            .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
+                            .0.. .... = has server index: False
+                            0... .... = has namespace uri: False
+                        Identifier Numeric: 0
+                    EncodingMask: 0x00
+                        .... ...0 = has binary body: False
+                        .... ..0. = has xml body: False
+
 # GET-ENDPOINTS-MSG-Req
 
     Message Type: MSG
