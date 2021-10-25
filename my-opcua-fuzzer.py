@@ -3,7 +3,8 @@
 from constants import HELLO_MSG_BODY_NAME, HOST_ADDR, OPC_UA_PORT, ENDPOINT_STRING, CHUNK_TYPE
 from constants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
 from constants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
-from constants import UNIX_TIME
+from constants import UNIX_TIME, COMMON_MSG_TYPE
+from constants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET_ENDPOINTS_MSG_BODY_NAME
 
 #from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME
 
@@ -41,7 +42,7 @@ def hello_msg():
     s_initialize(HELLO_MSG_NAME)
 
     with s_block(HELLO_MSG_HEADER_NAME):
-        s_bytes(HELLO_MSG_TYPE, name='Hello magic', fuzzable=False)
+        s_bytes(HELLO_MSG_TYPE, name='Hello msg', fuzzable=False)
         s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
         s_size(HELLO_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
@@ -58,7 +59,7 @@ def open_msg():
     s_initialize(OPEN_MSG_NAME)
 
     with s_block(OPEN_MSG_HEADER_NAME):
-        s_bytes(OPEN_MSG_TYPE, name='Open magic', fuzzable=False)
+        s_bytes(OPEN_MSG_TYPE, name='Open msg', fuzzable=False)
         s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
         s_size(OPEN_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
@@ -73,11 +74,45 @@ def open_msg():
         s_dword(1, name='request id')
         #Encodable Obj > Expanded NodeID
         s_bytes(b'\x01\x00\xbe\x01', name='Type id')
-        #OpenSecureChannelRequest > RequestHeader > NodeId
-        s_bytes(b'\x00\x00', name='Authentication Token')
+        # Req header
+        s_bytes(b'\x00\x00', name='authentication token')
         s_qword(opcua_time(), name='timestamp')
-        # TODO remaining fields
+        s_dword(1, name='request handle')
+        s_dword(0, name='return diagnostics')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
+        s_dword(1000, name='timeout hint')
+        s_bytes(b'\x00\x00\x00', name='additional header')
+        # Req params     
+        s_dword(0, name='client protocol version')
+        s_dword(0, name='request type')
+        s_dword(1, name='security mode')
+        s_bytes(b'\x00\x00\x00\x00', name='client nonce')
+        s_dword(3600000, name='requested lifetime')
 
+def get_endpoints():
+    s_initialize(GET_ENDPOINTS_MSG_NAME)
+
+    with s_block(GET_ENDPOINTS_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Get Endpoints', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(GET_ENDPOINTS_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(GET_ENDPOINTS_MSG_BODY_NAME):
+        s_dword(0, name='secure channel id', fuzzable=False)
+        s_dword(4, name='secure token id', fuzzable=False)
+        s_dword(2, name='secure sequence number', fuzzable=False)
+        s_dword(2, name='secure request id', fuzzable=False)
+        '''???'''
+        # Req header
+        s_bytes(b'\x00\x00', name='authentication token')
+        s_qword(opcua_time(), name='timestamp')
+        s_dword(1, name='request handle')
+        s_dword(0, name='return diagnostics')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
+        s_dword(1000, name='timeout hint')
+        s_bytes(b'\x00\x00\x00', name='additional header')
+        #Req params
+        #TODO other fields
 
 
 
@@ -85,7 +120,7 @@ def open_msg():
     s_initialize(CLOSE_MSG_NAME)
 
     with s_block(CLOSE_MSG_HEADER_NAME):
-        s_bytes(CLOSE_MSG_TYPE, name='Close channel magic', fuzzable=False)
+        s_bytes(CLOSE_MSG_TYPE, name='Close channel msg', fuzzable=False)
         s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
         s_size(CLOSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 

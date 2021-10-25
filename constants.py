@@ -4,8 +4,9 @@ OPC_UA_PORT = 4840
 ENDPOINT_STRING = 'opc.tcp://localhost:4840/'.encode('utf-8')
 CHUNK_TYPE = b'F'
 UNIX_TIME = 116444736000000000  # January 1, 1970
+COMMON_MSG_TYPE = b'MSG'
 
-# hello msg related
+# hello msg client initiated req related
 HELLO_MSG_TYPE = b'HEL'
 HELLO_MSG_NAME = 'Hello'
 HELLO_MSG_HEADER_NAME = 'h-header'
@@ -17,6 +18,12 @@ OPEN_MSG_NAME = 'Open'
 OPEN_MSG_HEADER_NAME = 'o-header'
 OPEN_MSG_BODY_NAME = 'o-body'
 OPEN_MSG_SEC_POLICY_NONE = 'http://opcfoundation.org/UA/SecurityPolicy#None'.encode('utf-8')
+
+# get endpoints req related 
+GET_ENDPOINTS_MSG_NAME = 'GetEndpoints'
+GET_ENDPOINTS_MSG_HEADER_NAME = 'g-header'
+GET_ENDPOINTS_MSG_BODY_NAME = 'g-body'
+
 
 # close msg related
 CLOSE_MSG_TYPE = b'CLO'
