@@ -3,13 +3,11 @@
 from constants import HELLO_MSG_BODY_NAME, HOST_ADDR, OPC_UA_PORT, ENDPOINT_STRING, CHUNK_TYPE
 from constants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
 from constants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
-from constants import UNIX_TIME, COMMON_MSG_TYPE
+from constants import UNIX_TIME, COMMON_MSG_TYPE, PNG_GRAPH_OUT_FILE
 from constants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET_ENDPOINTS_MSG_BODY_NAME
 
-#from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME
-
-# TODO import only boofuz needed modules
-from boofuzz import *
+from boofuzz import s_initialize, s_bytes, s_dword, s_get, s_block, s_size, s_qword
+from boofuzz import Session, Target, TCPSocketConnection
 
 # struct — Interpret bytes as packed binary data
 import struct
@@ -31,9 +29,12 @@ def main():
     hello_msg()
 
     session.connect(s_get(HELLO_MSG_NAME))
-
-    with open('./myopcuaTest.png', 'wb') as file:
-        file.write(session.render_graph_graphviz().create_png())
+    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
+    #session.connect(s_get(OPEN_MSG_NAME), s_get('CloseChannel'), callback=open_callback)
+    
+    # session graph PNG creation
+    #with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
+    #    file.write(session.render_graph_graphviz().create_png())
 
     try:
         session.fuzz()
@@ -118,18 +119,29 @@ def get_endpoints():
         #TODO other fields
 
 
+# -----------------------CallBacks------------------
+#TODO change names
+def open_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs):
+    recv = session.last_recv
+    if not recv:
+        fuzz_data_logger.log_fail('ERR - empty response')
+        return
+    try:
+        channel_id, policy_len = struct.unpack('ii', recv[8:16])
+        sequence_offset = 24 + policy_len
+        seq_num, req_id = struct.unpack('ii', recv[sequence_offset:sequence_offset + 8])
 
-'''def close_msg():
-    s_initialize(CLOSE_MSG_NAME)
+        request_header_length = 8 + 4 + 4 + 1 + 4 + 3
+        token_offset = sequence_offset + 8 + 4 + request_header_length + 4
+        sec_channel_id, token_id = struct.unpack('ii', recv[token_offset:token_offset + 8])
 
-    with s_block(CLOSE_MSG_HEADER_NAME):
-        s_bytes(CLOSE_MSG_TYPE, name='Close channel msg', fuzzable=False)
-        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
-        s_size(CLOSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
-
-    with s_block(CLOSE_MSG_BODY_NAME):
-        s_dword(0, name='Protocol version')'''
-
+    except struct.error:
+        fuzz_data_logger.log_error('ERR - could not unpack response')
+    else:
+        test_case_context.stack[1].stack[0]._value = sec_channel_id
+        test_case_context.stack[1].stack[1]._value = token_id
+        test_case_context.stack[1].stack[2]._value = seq_num + 1
+        test_case_context.stack[1].stack[3]._value = req_id + 1
 
 
 # -----------------------UTILS---------------------

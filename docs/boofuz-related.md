@@ -18,10 +18,13 @@ Leverage callback methods to handle situations such as challenge response system
 * ```src (str or Request (pgrah.Node))``` – Source request name or request node
 * ```dst (str or Request (pgrah.Node), optional)``` – Destination request name or re-
 quest node
-* ```callback (def , optional)``` – Callback function to pass received data to between node xmits. Default None.
-Returns The edge between the src and dst.
-Return type pgraph.Edge
-example_test_case_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs)
+* ```callback (def , optional)``` – Callback function to pass received data to between node xmits. Default None. 
+### Returns 
+The edge between the src and dst.
+### Return type
+pgraph.Edge
+
+### example_test_case_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs)
 Example call signature for methods given to connect() or register_post_test_case_callback()
 Parameters
 * ```target (Target)``` – Target with sock-like interface.
