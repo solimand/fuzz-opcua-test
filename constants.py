@@ -24,6 +24,7 @@ OPEN_MSG_SEC_POLICY_NONE = 'http://opcfoundation.org/UA/SecurityPolicy#None'.enc
 GET_ENDPOINTS_MSG_NAME = 'GetEndpoints'
 GET_ENDPOINTS_MSG_HEADER_NAME = 'g-header'
 GET_ENDPOINTS_MSG_BODY_NAME = 'g-body'
+GET_ENDPOINTS_MSG_TYPE_ID = 428
 
 
 # close msg related
@@ -31,5 +32,6 @@ CLOSE_MSG_TYPE = b'CLO'
 CLOSE_MSG_NAME = 'Close'
 CLOSE_MSG_HEADER_NAME = 'c-header'
 CLOSE_MSG_BODY_NAME = 'c-body'
+CLOSE_MSG_TYPE_ID = 452
 
 # ack msg related
