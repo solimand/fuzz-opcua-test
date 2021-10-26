@@ -17,20 +17,27 @@ import struct
 from datetime import datetime
 from calendar import timegm
 
+#DBG
+from pprint import pprint #print obj attributes
+
 def main():
-    print("starting fuzzer")
+    print_dbg("starting fuzzer")
     session = Session(
         target=Target(
             connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
         index_start=0,
-        index_end=300)
+        index_end=5)
+        #post_test_case_callbacks=[hello_callback])
 
-    print_dbg(session.web_port)
-
-    hello_msg()
+    hello_msg_nf()
+    #hello_msg()
+    open_msg()
+    close_msg()
 
     session.connect(s_get(HELLO_MSG_NAME))
-    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
+    #session.connect(s_get(HELLO_MSG_NAME), callback=hello_callback)
+    
+    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     
     # session graph PNG creation
@@ -42,7 +49,25 @@ def main():
     except KeyboardInterrupt:
         pass
 
-# -----------------------MSGs DEF---------------------
+# -----------------------MSGs DEF - nf=not fuzzed---------------------
+def hello_msg_nf():
+    s_initialize(HELLO_MSG_NAME)
+
+    with s_block(HELLO_MSG_HEADER_NAME):
+        s_bytes(HELLO_MSG_TYPE, name='Hello msg', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(HELLO_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(HELLO_MSG_BODY_NAME):
+        s_dword(0, name='Protocol version', fuzzable=False)
+        s_dword(65536, name='Receive buffer size', fuzzable=False)
+        s_dword(65536, name='Send buffer size', fuzzable=False)
+        s_dword(0, name='Max message size', fuzzable=False)
+        s_dword(0, name='Max chunk count', fuzzable=False)
+        s_dword(len(ENDPOINT_STRING), name='Url length', fuzzable=False)
+        s_bytes(ENDPOINT_STRING, name='Endpoint url', fuzzable=False)
+
+
 def hello_msg():
     s_initialize(HELLO_MSG_NAME)
 
@@ -119,7 +144,7 @@ def close_msg():
         s_bytes(b'\x00\x00\x00', name='additional header')
 
 
-def get_endpoints():
+'''def get_endpoints():
     s_initialize(GET_ENDPOINTS_MSG_NAME)
 
     with s_block(GET_ENDPOINTS_MSG_HEADER_NAME):
@@ -143,24 +168,25 @@ def get_endpoints():
         s_dword(1000, name='timeout hint')
         s_bytes(b'\x00\x00\x00', name='additional header')
         #Req params
-        #TODO other fields
+        #TODO other fields'''
 
 
 # -----------------------CallBacks------------------
-#TODO change names
+#TODO understand bytes
 def open_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs):
-    recv = session.last_recv
-    if not recv:
+    res = session.last_recv
+    if not res:
         fuzz_data_logger.log_fail('ERR - empty response')
         return
+    print_dbg(str(pprint(vars(session))))
     try:
-        channel_id, policy_len = struct.unpack('ii', recv[8:16])
+        channel_id, policy_len = struct.unpack('ii', res[8:16])
         sequence_offset = 24 + policy_len
-        seq_num, req_id = struct.unpack('ii', recv[sequence_offset:sequence_offset + 8])
+        seq_num, req_id = struct.unpack('ii', res[sequence_offset:sequence_offset + 8])
 
         request_header_length = 8 + 4 + 4 + 1 + 4 + 3
         token_offset = sequence_offset + 8 + 4 + request_header_length + 4
-        sec_channel_id, token_id = struct.unpack('ii', recv[token_offset:token_offset + 8])
+        sec_channel_id, token_id = struct.unpack('ii', res[token_offset:token_offset + 8])
 
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response')
@@ -170,10 +196,20 @@ def open_callback(target, fuzz_data_logger, session, test_case_context, *args, *
         test_case_context.stack[1].stack[2]._value = seq_num + 1
         test_case_context.stack[1].stack[3]._value = req_id + 1
 
+# TODO try to parse ACK
+def hello_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs):
+    res = session.last_recv
+    '''if not res:
+        fuzz_data_logger.log_fail('ERR - empty response')
+        return'''
+    print_dbg(res)
+    #pprint(vars(session))
+    #print_dbg(target.recv())
+
 
 # -----------------------UTILS---------------------
 def print_dbg(msg):
-    print("DBG: "+str(msg))
+    print("\tDBG: "+str(msg))
 
 def opcua_time():
     now = datetime.now()
