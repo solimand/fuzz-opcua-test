@@ -25,13 +25,13 @@ def main():
     print_dbg("starting fuzzer")
     session = Session(
         target=Target(
-            connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
-        index_start=0,
-        index_end=5)
+            connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)))#,
+        #index_start=0,
+        #index_end=200)
         #post_test_case_callbacks=[hello_callback])
 
-    hello_msg_nf()
-    #hello_msg()
+    #hello_msg_nf()
+    hello_msg()
     open_msg_nf()
     #open_msg()
     close_msg()
@@ -39,9 +39,9 @@ def main():
     session.connect(s_get(HELLO_MSG_NAME))
     
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
-    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
+    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
 
-    session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
+    #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME))
 
     # session graph PNG creation
@@ -71,7 +71,6 @@ def hello_msg_nf():
         s_dword(len(ENDPOINT_STRING), name='Url length', fuzzable=False)
         s_bytes(ENDPOINT_STRING, name='Endpoint url', fuzzable=False)
 
-
 def hello_msg():
     s_initialize(HELLO_MSG_NAME)
 
@@ -81,7 +80,8 @@ def hello_msg():
         s_size(HELLO_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
     with s_block(HELLO_MSG_BODY_NAME):
-        s_dword(0, name='Protocol version')
+        protocolVersionList=range(0,100)
+        s_dword(0, name='Protocol version')#, fuzz_values=protocolVersionList)
         s_dword(65536, name='Receive buffer size')
         s_dword(65536, name='Send buffer size')
         s_dword(0, name='Max message size')
