@@ -7,7 +7,7 @@ from fuzzConstants import UNIX_TIME, COMMON_MSG_TYPE, PNG_GRAPH_OUT_FILE
 #from constants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET_ENDPOINTS_MSG_BODY_NAME
 from fuzzConstants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID
 
-from boofuzz import s_initialize, s_bytes, s_dword, s_get, s_block, s_size, s_qword
+from boofuzz import s_initialize, s_bytes, s_dword, s_get, s_block, s_num_mutations, s_size, s_qword
 from boofuzz import Session, Target, TCPSocketConnection
 
 # struct — Interpret bytes as packed binary data
@@ -31,18 +31,21 @@ def main():
         receive_data_after_fuzz=True,
         keep_web_open=False,
         web_port=None,
-        index_start=0,
-        index_end=5)
+        index_start=3,
+        index_end=3)
         
 
     #hello_msg_nf()
     hello_msg()
-    open_msg_nf()
-    #open_msg()
+    print_dbg("num muts hello = " + str(s_num_mutations()))
+    #open_msg_nf()
+    open_msg()
+    #print_dbg("num muts open = " + str(s_num_mutations()))
     close_msg()
 
-    session.connect(s_get(HELLO_MSG_NAME), callback=hello_callback)
-    
+    #session.connect(s_get(HELLO_MSG_NAME), callback=hello_callback)
+    session.connect(s_get(HELLO_MSG_NAME))
+
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
 
@@ -85,15 +88,17 @@ def hello_msg():
         s_size(HELLO_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
     with s_block(HELLO_MSG_BODY_NAME):
-        protocolVersionList=range(0,100)
-        s_dword(0, name='Protocol version')#, fuzz_values=protocolVersionList)
+        protocolVersionList=range(1,100)
+        s_dword(5, name='Protocol version')#, fuzz_values=protocolVersionList)
+        #print_dbg("num mut prot = " + str(s_num_mutations())) # print num mutations at this time (140)
         s_dword(65536, name='Receive buffer size')
-        s_dword(65536, name='Send buffer size')
-        s_dword(0, name='Max message size')
-        s_dword(0, name='Max chunk count')
-        s_dword(len(ENDPOINT_STRING), name='Url length')
-        s_bytes(ENDPOINT_STRING, name='Endpoint url')
-
+        #print_dbg("num mutt rec buff size= " + str(s_num_mutations())) (280)
+        s_dword(65536, name='Send buffer size') #(420)
+        s_dword(0, name='Max message size') #(560)
+        s_dword(0, name='Max chunk count') #(700)
+        s_dword(len(ENDPOINT_STRING), name='Url length') #(840)
+        s_bytes(ENDPOINT_STRING, name='Endpoint url') #(2270)
+    
 
 # -----------------------OPEN MSG---------------------
 def open_msg():
