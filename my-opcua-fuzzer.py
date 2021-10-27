@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from constants import CLOSE_MSG_TYPE_ID, HELLO_MSG_BODY_NAME, HOST_ADDR, OPC_UA_PORT, ENDPOINT_STRING, CHUNK_TYPE
-from constants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
-from constants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
-from constants import UNIX_TIME, COMMON_MSG_TYPE, PNG_GRAPH_OUT_FILE
+from fuzzConstants import CLOSE_MSG_TYPE_ID, HELLO_MSG_BODY_NAME, HOST_ADDR, OPC_UA_PORT, ENDPOINT_STRING, CHUNK_TYPE
+from fuzzConstants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
+from fuzzConstants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
+from fuzzConstants import UNIX_TIME, COMMON_MSG_TYPE, PNG_GRAPH_OUT_FILE
 #from constants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET_ENDPOINTS_MSG_BODY_NAME
-from constants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID
+from fuzzConstants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID
 
 from boofuzz import s_initialize, s_bytes, s_dword, s_get, s_block, s_size, s_qword
 from boofuzz import Session, Target, TCPSocketConnection
@@ -25,10 +25,15 @@ def main():
     print_dbg("starting fuzzer")
     session = Session(
         target=Target(
-            connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)))#,
-        #index_start=0,
-        #index_end=200)
-        #post_test_case_callbacks=[hello_callback])
+            connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
+        #post_test_case_callbacks=[hello_callback]),
+        #sleep_time=5, #sleep between tests
+        receive_data_after_fuzz=True,
+        keep_web_open=False,
+        web_port=None,
+        index_start=0,
+        index_end=5)
+        
 
     #hello_msg_nf()
     hello_msg()
@@ -36,7 +41,7 @@ def main():
     #open_msg()
     close_msg()
 
-    session.connect(s_get(HELLO_MSG_NAME))
+    session.connect(s_get(HELLO_MSG_NAME), callback=hello_callback)
     
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
@@ -245,12 +250,12 @@ def open_callback(target, fuzz_data_logger, session, test_case_context, *args, *
     #print_dbg("test case = "+str(pprint(vars(test_case_context))))
     print_dbg("test case = "+str(test_case_context.session_variables))
 
-# TODO try to parse ACK
-def hello_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs):
+#
+def hello_callback(target, fuzz_data_logger, session, test_case_context=None, *args, **kwargs):
     res = session.last_recv
-    '''if not res:
+    if not res:
         fuzz_data_logger.log_fail('ERR - empty response')
-        return'''
+        return
     print_dbg(res)
 
 
