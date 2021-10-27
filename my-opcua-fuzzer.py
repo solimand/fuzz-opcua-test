@@ -227,12 +227,17 @@ def open_callback(target, fuzz_data_logger, session, test_case_context, *args, *
         return
     #print_dbg( "res= "+str(res))
     try:
+        # 8B=header, 4B=ch id + 4B=policy len
         channel_id, policy_len = struct.unpack('ii', res[8:16])
+        # 16B=before + policylen + 4B=senderCert + 4B=receiverCert -> policylen+24
         sequence_offset = 24 + policy_len
+        # seqNum=4B and reqid =4B
         seq_num, req_id = struct.unpack('ii', res[sequence_offset:sequence_offset + 8])
-
-        request_header_length = 8 + 4 + 4 + 1 + 4 + 3
-        token_offset = sequence_offset + 8 + 4 + request_header_length + 4
+        # before=24+policyLen+8(seqNum+reqId)=32+policyLen
+        # 32+policyLen+4(typeid)+8(time)+4(reqHandle)+4(ServRes)+1(diagnostic)+4(stringTable)+
+            # +3(additionalHeader)+4(servProtVer)->policyLen+64->start of sec_ch_id
+        request_header_length = 8 + 4 + 4 + 1 + 4 + 3 #(24)
+        token_offset = sequence_offset + 8 + 4 + request_header_length + 4 #(24+8+4+24+4=64)
         sec_channel_id, token_id = struct.unpack('ii', res[token_offset:token_offset + 8])
         
         #print_dbg("ch id = "+str(channel_id))
