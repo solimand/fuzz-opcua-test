@@ -31,25 +31,25 @@ def main():
         receive_data_after_fuzz=True,
         keep_web_open=False,
         web_port=None,
-        index_start=1,
-        index_end=3)
+        index_start=291,
+        index_end=300)
         
 
-    hello_msg_nf()
-    #hello_msg()
+    #hello_msg_nf()
+    hello_msg()
     #print_dbg("num muts hello = " + str(s_num_mutations()))
-    open_msg_nf()
+    #open_msg_nf()
     #open_msg()
     #print_dbg("num muts open = " + str(s_num_mutations()))
-    close_msg()
+    #close_msg()
 
     #session.connect(s_get(HELLO_MSG_NAME), callback=hello_callback)
     session.connect(s_get(HELLO_MSG_NAME))
 
-    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
+    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
 
-    session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
+    #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME))
 
     # session graph PNG creation
@@ -87,12 +87,11 @@ def hello_msg():
         s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
         s_size(HELLO_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
+    #default value is used when other are fuzzed
     with s_block(HELLO_MSG_BODY_NAME):
-        protocolVersionList=range(1,100)
-        s_dword(5, name='Protocol version')#, fuzz_values=protocolVersionList)
-        #print_dbg("num mut prot = " + str(s_num_mutations())) # print num mutations at this time (140)
-        s_dword(65536, name='Receive buffer size')
-        #print_dbg("num mutt rec buff size= " + str(s_num_mutations())) (280)
+        protVerList=[b"\x00\x00\xff\xff",b"\xff\x00\xff\x00"] #add these values to protVersion fuzz
+        s_dword(1, name='Protocol version')#, fuzz_values=protVerList) #(140)
+        s_dword(65536, name='Receive buffer size') #(280)
         s_dword(65536, name='Send buffer size') #(420)
         s_dword(0, name='Max message size') #(560)
         s_dword(0, name='Max chunk count') #(700)
@@ -281,6 +280,7 @@ def err_callback(target, fuzz_data_logger, session, test_case_context=None, *arg
     msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
     if (msg_type == ERR_MSG_TYPE):
         print_dbg("ERR received!")
+        #TODO kinds of error
 
 # -----------------------UTILS---------------------
 def print_dbg(msg):
