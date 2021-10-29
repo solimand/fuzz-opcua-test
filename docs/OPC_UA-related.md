@@ -145,3 +145,10 @@
                 ArraySize: 0
             ProfileUris: Array of String
                 ArraySize: 0
+
+# Errors & Error Codes
+- BadDecodingError -> occurs when (...); error code (...)
+
+- BadInternalError -> occurs when (...); error code (...)
+
+- BadSecureChannelIdInvalid -> occurs when (...); error code (...)

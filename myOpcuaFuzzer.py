@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fuzzConstants import HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE
+from fuzzConstants import HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
@@ -24,8 +24,10 @@ def main():
         receive_data_after_fuzz=True,
         keep_web_open=False,
         web_port=None,
-        index_start=291,
-        index_end=293)
+        index_start=1,
+        index_end=3)
+        #index_start=291,
+        #index_end=293)
         
 
     hello_msg_nf()
@@ -56,12 +58,11 @@ def main():
 
 
 # -----------------------CallBacks------------------
-def open_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs):
+def open_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
     if not res:
         fuzz_data_logger.log_fail('ERR - empty response')
         return
-    #print_dbg( "res= "+str(res))
     try:
         msg_type_tuple = struct.unpack('ccc', res[0:3])
         msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
@@ -77,36 +78,29 @@ def open_callback(target, fuzz_data_logger, session, test_case_context, *args, *
         request_header_length = 8 + 4 + 4 + 1 + 4 + 3 #(24)
         token_offset = sequence_offset + 8 + 4 + request_header_length + 4 #(24+8+4+24+4=64)
         sec_channel_id, token_id = struct.unpack('ii', res[token_offset:token_offset + 8])
-        print_dbg(msg_type)
-        #print_dbg("ch id = "+str(channel_id))
-        #print_dbg("sec ch id = "+str(sec_channel_id))
-        #print_dbg("tok id = "+str(token_id))
-
+        #print_dbg("sec ch id = "+str(sec_channel_id)) # ok right
+        #print_dbg("target " + str(pprint(vars(target))))
+        #print_dbg("test case ctx " + str(pprint(vars(node))))
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response')
-    '''else:
-        test_case_context.stack[1].stack[0]._value = sec_channel_id
-        test_case_context.stack[1].stack[1]._value = token_id
-        test_case_context.stack[1].stack[2]._value = seq_num + 1
-        test_case_context.stack[1].stack[3]._value = req_id + 1'''
-    
-    #print_dbg("test case = "+str(pprint(vars(test_case_context))))
-    print_dbg("test case = "+str(test_case_context.session_variables))
+    else:
+        node.stack[1].stack[0]._value = sec_channel_id
+        node.stack[1].stack[1]._value = token_id
+        node.stack[1].stack[2]._value = seq_num + 1
+        node.stack[1].stack[3]._value = req_id + 1  
 
-def hello_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs):
+
+def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
     if not res:
         fuzz_data_logger.log_fail('ERR - empty response')
         return
     msg_type_tuple = struct.unpack('ccc', res[0:3])
     msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
-    print_dbg(kwargs)
-    print_dbg("target" + str(pprint(vars(target))))
-    print_dbg("session" + str(pprint(vars(session))))
     if (msg_type == ACK_MSG_TYPE):
         print_dbg("ACK received!")
 
-def err_callback(target, fuzz_data_logger, session, test_case_context=None, *args, **kwargs):
+def err_callback(target, fuzz_data_logger, session, node=None, *_, **__):
     res = session.last_recv
     if not res:
         fuzz_data_logger.log_fail('ERR - empty response')
