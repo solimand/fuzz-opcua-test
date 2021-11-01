@@ -36,4 +36,3 @@ CLOSE_MSG_HEADER_NAME = 'c-header'
 CLOSE_MSG_BODY_NAME = 'c-body'
 CLOSE_MSG_TYPE_ID = 452
 
-# ack msg related

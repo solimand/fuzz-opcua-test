@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fuzzConstants import HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME
+from fuzzConstants import HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME, OPEN_MSG_TYPE
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
@@ -19,13 +19,13 @@ def main():
     session = Session(
         target=Target(
             connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
-        post_test_case_callbacks=[err_callback],
-        #sleep_time=5, #sleep between tests
+        post_test_case_callbacks=[generic_callback],
+        sleep_time=0,
         receive_data_after_fuzz=True,
         keep_web_open=False,
         web_port=None,
         index_start=1,
-        index_end=3)
+        index_end=1)
         #index_start=291,
         #index_end=293)
         
@@ -33,18 +33,18 @@ def main():
     hello_msg_nf()
     #hello_msg()
     #print_dbg("num muts hello = " + str(s_num_mutations()))
-    #open_msg_nf()
-    open_msg()
+    open_msg_nf()
+    #open_msg()
     #print_dbg("num muts open = " + str(s_num_mutations()))
-    #close_msg()
+    close_msg()
 
     #session.connect(s_get(HELLO_MSG_NAME), callback=hello_callback)
     session.connect(s_get(HELLO_MSG_NAME))
 
-    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
-    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
+    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
+    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
 
-    #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
+    session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME))
 
     # session graph PNG creation
@@ -78,16 +78,16 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
         request_header_length = 8 + 4 + 4 + 1 + 4 + 3 #(24)
         token_offset = sequence_offset + 8 + 4 + request_header_length + 4 #(24+8+4+24+4=64)
         sec_channel_id, token_id = struct.unpack('ii', res[token_offset:token_offset + 8])
-        #print_dbg("sec ch id = "+str(sec_channel_id)) # ok right
-        #print_dbg("target " + str(pprint(vars(target))))
-        #print_dbg("test case ctx " + str(pprint(vars(node))))
+        print_dbg("sequence num  "+str(seq_num)+" req id "+str(req_id))
+        print_dbg("sec ch id "+str(sec_channel_id)+" token id "+str(token_id))
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response')
     else:
         node.stack[1].stack[0]._value = sec_channel_id
         node.stack[1].stack[1]._value = token_id
         node.stack[1].stack[2]._value = seq_num + 1
-        node.stack[1].stack[3]._value = req_id + 1  
+        node.stack[1].stack[3]._value = req_id + 1 
+        print_dbg("node 0.1.0 name " + str(node.stack[1].stack[0]._name) + " node 0.1.0 val " + str(node.stack[1].stack[0]._value)) #response give error
 
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
@@ -100,7 +100,7 @@ def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
     if (msg_type == ACK_MSG_TYPE):
         print_dbg("ACK received!")
 
-def err_callback(target, fuzz_data_logger, session, node=None, *_, **__):
+def generic_callback(target, fuzz_data_logger, session, node=None, *_, **__):
     res = session.last_recv
     if not res:
         fuzz_data_logger.log_fail('ERR - empty response')
@@ -110,7 +110,10 @@ def err_callback(target, fuzz_data_logger, session, node=None, *_, **__):
     if (msg_type == ERR_MSG_TYPE):
         print_dbg("ERR received!")
         #TODO kinds of error
-
+    if (msg_type == OPEN_MSG_TYPE):
+        print_dbg("OPN received!")
+    if (msg_type == ACK_MSG_TYPE):
+        print_dbg("ACK received!")
 
 if __name__ == "__main__":
     main()
