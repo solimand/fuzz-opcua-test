@@ -4,7 +4,7 @@ from fuzzConstants import HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME,
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
-from msgDefinitions import hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, print_dbg
+from msgDefinitions import hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, print_dbg, CLOSE_MSG_BODY_NAME
 
 # struct — Interpret bytes as packed binary data
 import struct
@@ -19,7 +19,7 @@ def main():
     session = Session(
         target=Target(
             connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
-        post_test_case_callbacks=[generic_callback],
+        #post_test_case_callbacks=[generic_callback],
         sleep_time=0,
         receive_data_after_fuzz=True,
         keep_web_open=False,
@@ -83,11 +83,20 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response')
     else:
-        node.stack[1].stack[0]._value = sec_channel_id
+        #node.stack[1] -> msg Body
+        # TODO PROBLEM the next packet is not set         
+        node.names['Close.c-body.secure channel id'] = sec_channel_id
         node.stack[1].stack[1]._value = token_id
         node.stack[1].stack[2]._value = seq_num + 1
-        node.stack[1].stack[3]._value = req_id + 1 
-        print_dbg("node 0.1.0 name " + str(node.stack[1].stack[0]._name) + " node 0.1.0 val " + str(node.stack[1].stack[0]._value)) #response give error
+        node.stack[1].stack[3]._value = req_id + 1
+    print_dbg("sec ch from node "+str(node.names['Close.c-body.secure channel id']))
+    print_dbg("Target "+str(target))
+    print_dbg("log "+str(fuzz_data_logger))
+    print_dbg("session "+str(session))
+    print_dbg("node "+str(node))
+    print_dbg("args "+str(_))
+    print_dbg("kwaargs "+str(__))
+
 
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):

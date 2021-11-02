@@ -139,10 +139,10 @@ def close_msg():
         s_size(CLOSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
     with s_block(CLOSE_MSG_BODY_NAME):
-        s_dword(0, name='secure channel id', fuzzable=False) #from open callback
-        s_dword(0, name='secure token id', fuzzable=False) #from open callback
-        s_dword(0, name='secure sequence number', fuzzable=False) #from open callback
-        s_dword(0, name='secure request id', fuzzable=False) #from open callback
+        s_dword(1, name='secure channel id', fuzzable=False) #from open callback
+        s_dword(2, name='secure token id', fuzzable=False) #from open callback
+        s_dword(3, name='secure sequence number', fuzzable=False) #from open callback
+        s_dword(4, name='secure request id', fuzzable=False) #from open callback
         # type id  b'\x01\x00\xc4\x01'
         s_bytes(b'\x01\x00' + struct.pack('<H', CLOSE_MSG_TYPE_ID), name='Type id', fuzzable=False)
         # request header
