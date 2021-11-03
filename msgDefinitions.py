@@ -21,6 +21,14 @@ def opcua_time():
     res_time = UNIX_TIME + (timegm(now.timetuple()) * 10000000)
     return res_time + (now.microsecond * 10)
 
+#TODO fix- print(int(time.time()*1000000)) but i need gmt +2
+def opcua_time_v2():
+    now = datetime.now()
+    format_string = '"%b %-d, %Y %H:%M:%S.%f"'
+    current_time_string = now.strftime(format_string)
+    return current_time_string
+
+
 # -----------------------HELLO MSG---------------------
 def hello_msg_nf():
     s_initialize(HELLO_MSG_NAME)
@@ -81,7 +89,8 @@ def open_msg():
         s_bytes(b'\x01\x00\xbe\x01', name='Type id')
         # Req header
         s_bytes(b'\x00\x00', name='authentication token')
-        s_qword(opcua_time(), name='timestamp')
+        #s_qword(opcua_time(), name='timestamp')
+        s_qword(opcua_time_v2(), name='timestamp')
         s_dword(1, name='request handle')
         s_dword(0, name='return diagnostics')
         s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
@@ -115,7 +124,8 @@ def open_msg_nf():
         s_bytes(b'\x01\x00\xbe\x01', name='Type id', fuzzable=False)
         # Req header
         s_bytes(b'\x00\x00', name='authentication token', fuzzable=False)
-        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        #s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_qword(opcua_time_v2(), name='timestamp', fuzzable=False)
         s_dword(1, name='request handle', fuzzable=False)
         s_dword(0, name='return diagnostics', fuzzable=False)
         s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id', fuzzable=False)
@@ -147,7 +157,8 @@ def close_msg():
         s_bytes(b'\x01\x00' + struct.pack('<H', CLOSE_MSG_TYPE_ID), name='Type id', fuzzable=False)
         # request header
         s_bytes(b'\x00\x00', name='authentication token')
-        s_qword(opcua_time(), name='timestamp')
+        #s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_qword(opcua_time_v2(), name='timestamp', fuzzable=False)
         s_dword(1, name='request handle')
         s_dword(0, name='return diagnostics')
         s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
