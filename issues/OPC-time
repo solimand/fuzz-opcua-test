@@ -1,0 +1,17 @@
+Considerations on TIME
+Something weird here, the OPC time differs from epoch time
+    E.G.    --04 Nov 2021 12:20:15.072328000
+
+        --time opc
+        01d7d1658ef022d0 (reversed endian of OPN res packet)
+        132804948150723280 (from hex to decimal)
+
+        --time real from python
+        dt_obj = datetime.strptime("2021-11-04 12:20:15.072328","%Y-%m-%d %H:%M:%S.%f").timestamp()
+            #i lose precision here... %f does not let me have 15.072328000
+        1636021215.072328
+        163602121507232800
+
+        --diff 30797173000000000
+
+        --theoretically to get time -- int(time.time()*100000000) - diff

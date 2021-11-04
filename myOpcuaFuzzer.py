@@ -41,7 +41,7 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
     else:
         #node.stack[1] -> msg Body
         # TODO PROBLEM the next packet is not set         
-        node.names['Close.c-body.secure channel id'] = b'\x00\x00\x00\xff' #sec_channel_id
+        node.names['Close.c-body.secure channel id'] = sec_channel_id
         node.stack[1].stack[1]._value = token_id
         node.stack[1].stack[2]._value = seq_num + 1
         node.stack[1].stack[3]._value = req_id + 1
