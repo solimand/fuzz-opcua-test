@@ -34,20 +34,21 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
         request_header_length = 8 + 4 + 4 + 1 + 4 + 3 #(24)
         token_offset = sequence_offset + 8 + 4 + request_header_length + 4 #(24+8+4+24+4=64)
         sec_channel_id, token_id = struct.unpack('ii', res[token_offset:token_offset + 8])
-        print_dbg("sequence num  "+str(seq_num)+" req id "+str(req_id))
-        print_dbg("sec ch id "+str(sec_channel_id)+" token id "+str(token_id))
+        #print_dbg("sequence num  "+str(seq_num)+" req id "+str(req_id))
+        #print_dbg("sec ch id "+str(sec_channel_id)+" token id "+str(token_id))
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response')
     else:
         #node.stack[1] -> msg Body
         # TODO PROBLEM the next packet is not set         
-        node.names['Close.c-body.secure channel id'] = sec_channel_id
+        #node.names['Close.c-body.secure channel id'] = sec_channel_id
+        node.stack[1].stack[0]._default_value = sec_channel_id
         node.stack[1].stack[1]._value = token_id
         node.stack[1].stack[2]._value = seq_num + 1
         node.stack[1].stack[3]._value = req_id + 1
-    print_dbg("sec ch from node "+str(node.names['Close.c-body.secure channel id']))
-    #print_dbg("sec ch from test case "+str(test_case_context.current_message.names['Close.c-body.secure channel id']))
-    #print_dbg("sec ch from session "+str(session.nodes[3].names['Close.c-body.secure channel id']))
+    print_dbg("sec ch from node names " + str(node.names['Close.c-body.secure channel id']))
+    print_dbg("sec ch from session " + str(session.nodes[3].names['Close.c-body.secure channel id']))
+    print_dbg("all values of sec ch id " + str(pprint(vars(node.stack[1].stack[0]))))
 
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
@@ -97,7 +98,7 @@ def main():
         keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
         index_start=1,
-        index_end=1)
+        index_end=3)
         #index_start=291,
         #index_end=293)
         

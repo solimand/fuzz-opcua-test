@@ -1,0 +1,14 @@
+Using callbacks to read value from a node and write to next node.
+These writes fail (in the sense that the next node is not set accordingly):
+    -node.names['Close.c-body.secure channel id'] = sec_channel_id
+    -node.stack[1].stack[0]._value = sec_channel_id
+although the following prints gave me the right value of the field taken from the prev node:
+    print_dbg("sec ch from node names " + str(node.names['Close.c-body.secure channel id']))
+    print_dbg("sec ch from session " + str(session.nodes[3].names['Close.c-body.secure channel id']))
+
+This write works
+    -node.stack[1].stack[0]._default_value = sec_channel_id
+
+How to find:
+    -print("all values of -sec ch id- " + str(pprint(vars(node.stack[1].stack[0]))))
+        printing all variables of this field, I found that the default_value is the only one used in next node transmission
