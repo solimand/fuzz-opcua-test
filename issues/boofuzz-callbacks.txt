@@ -1,14 +1,41 @@
-Using callbacks to read value from a node and write to next node.
-These writes fail (in the sense that the next node is not set accordingly):
-    -node.names['Close.c-body.secure channel id'] = sec_channel_id
-    -node.stack[1].stack[0]._value = sec_channel_id
-although the following prints gave me the right value of the field taken from the prev node:
-    print_dbg("sec ch from node names " + str(node.names['Close.c-body.secure channel id']))
-    print_dbg("sec ch from session " + str(session.nodes[3].names['Close.c-body.secure channel id']))
+Using callbacks to read a value from prev node and pass it to next node.
 
-This write works
+The message that I want modify:
+    -def my_msg():
+        s_initialize(Close)
+        with s_block(block0):
+            ...
+        with s_block(c-body):
+            s_dword(1, name='secure channel id', fuzzable=False) #value I want overwrite
+    -So I want to overwrite the primitive 'Close.c-body.secure channel id'
+
+The callback signature:
+    -def my_callback(target, fuzz_data_logger, session, node, *_, **__)
+
+The session graph:
+    -session.connect(s_get(mymsg0))
+    -session.connect(s_get(mymsg0), s_get(mymsg1))
+    -session.connect(s_get(mymsg1), s_get(Close), callback=my_callback)
+
+These writes fail (in the sense that the next node is not set accordingly):
+    -the reading of the response is ok, I get a correct 'myVal'
+    -I try to write it to the next node (failing):
+        -node.names['Close.c-body.secure channel id'] = myVal
+        -OR
+        -node.stack[1].stack[0]._value = myVal (stack[1].stack[0] is the correct index)
+    -although the following prints gave me the right value of the field taken from the prev node:
+        print("sec ch from node names " + str(node.names['Close.c-body.secure channel id']))
+        print("sec ch from session " + str(session.nodes[3].names['Close.c-body.secure channel id']))
+
+The only write that works is:
     -node.stack[1].stack[0]._default_value = sec_channel_id
 
-How to find:
-    -print("all values of -sec ch id- " + str(pprint(vars(node.stack[1].stack[0]))))
-        printing all variables of this field, I found that the default_value is the only one used in next node transmission
+How I solved my problem:
+    -I printed all variables of the field I want to overwrite and I found that the default_value is the only one used in the next node transmission (actually there is no '_value' field in the 's_dword' primitive, it is created only if I use the writing method 'node.stack[1].stack[0]._value = myVal')
+        -print("all values of -sec ch id primitive- " + str(pprint(vars(node.stack[1].stack[0]))))
+
+My question is: 
+    -I successfully reach my goal of overwriting values of the 'next' node BUT
+        -is this a weird solution?
+        -could it lead to a bad situation during the fuzzing?
+        -is there another way for overwriting primitive values for the next node?

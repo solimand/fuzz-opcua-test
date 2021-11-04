@@ -43,9 +43,9 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
         # TODO PROBLEM the next packet is not set         
         #node.names['Close.c-body.secure channel id'] = sec_channel_id
         node.stack[1].stack[0]._default_value = sec_channel_id
-        node.stack[1].stack[1]._value = token_id
-        node.stack[1].stack[2]._value = seq_num + 1
-        node.stack[1].stack[3]._value = req_id + 1
+        node.stack[1].stack[1]._default_value = token_id
+        node.stack[1].stack[2]._default_value = seq_num + 1
+        node.stack[1].stack[3]._default_value = req_id + 1
     print_dbg("sec ch from node names " + str(node.names['Close.c-body.secure channel id']))
     print_dbg("sec ch from session " + str(session.nodes[3].names['Close.c-body.secure channel id']))
     print_dbg("all values of sec ch id " + str(pprint(vars(node.stack[1].stack[0]))))
