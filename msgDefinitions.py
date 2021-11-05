@@ -1,7 +1,7 @@
 from fuzzConstants import CLOSE_MSG_TYPE_ID, HELLO_MSG_BODY_NAME, ENDPOINT_STRING, CHUNK_TYPE
 from fuzzConstants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
 from fuzzConstants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
-from fuzzConstants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID
+from fuzzConstants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID, CLOSE_MSG_SEC_CH_ID_PRIM_NAME, CLOSE_MSG_SEC_TOKEN_ID_PRIM_NAME, CLOSE_MSG_SEC_SEQ_NUM_PRIM_NAME, CLOSE_MSG_SEC_REQ_ID_PRIM_NAME
 from fuzzConstants import UNIX_TIME
 
 from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_size, s_qword
@@ -142,14 +142,14 @@ def close_msg():
         s_size(CLOSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
     with s_block(CLOSE_MSG_BODY_NAME):
-        s_dword(1, name='secure channel id', fuzzable=False) #from open callback
-        s_dword(2, name='secure token id', fuzzable=False) #from open callback
-        s_dword(3, name='secure sequence number', fuzzable=False) #from open callback
-        s_dword(4, name='secure request id', fuzzable=False) #from open callback
+        s_dword(1, name=CLOSE_MSG_SEC_CH_ID_PRIM_NAME, fuzzable=False) #from open callback
+        s_dword(2, name=CLOSE_MSG_SEC_TOKEN_ID_PRIM_NAME, fuzzable=False) #from open callback
+        s_dword(3, name=CLOSE_MSG_SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from open callback
+        s_dword(4, name=CLOSE_MSG_SEC_REQ_ID_PRIM_NAME, fuzzable=False) #from open callback
         # type id  b'\x01\x00\xc4\x01'
         s_bytes(b'\x01\x00' + struct.pack('<H', CLOSE_MSG_TYPE_ID), name='Type id', fuzzable=False)
         # request header
-            #if you fuzz Auth Token you will get Malformed Packet
+            # NOTE if you fuzz Auth Token you will get Malformed Packet
         s_bytes(b'\x00\x00', name='authentication token', fuzzable=False)
         s_qword(opcua_time(), name='timestamp', fuzzable=False)
         s_dword(1, name='request handle')

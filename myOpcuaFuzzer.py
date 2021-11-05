@@ -2,6 +2,8 @@
 
 from fuzzConstants import HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME, OPEN_MSG_TYPE
 
+from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD
+
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
 from msgDefinitions import hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, print_dbg, CLOSE_MSG_BODY_NAME
@@ -39,16 +41,18 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response')
     else:
-        #node.stack[1] -> msg Body
-        # TODO PROBLEM the next packet is not set         
-        #node.names['Close.c-body.secure channel id'] = sec_channel_id
-        node.stack[1].stack[0]._default_value = sec_channel_id
-        node.stack[1].stack[1]._default_value = token_id
-        node.stack[1].stack[2]._default_value = seq_num + 1
-        node.stack[1].stack[3]._default_value = req_id + 1
-    print_dbg("sec ch from node names " + str(node.names['Close.c-body.secure channel id']))
-    print_dbg("sec ch from session " + str(session.nodes[3].names['Close.c-body.secure channel id']))
-    print_dbg("all values of sec ch id " + str(pprint(vars(node.stack[1].stack[0]))))
+        node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+        node.names[CLOSE_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+        node.names[CLOSE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+        node.names[CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+        #OLD VERS -> node.stack[1] -> msg Body
+            #node.stack[1].stack[0]._default_value = sec_channel_id
+            #node.stack[1].stack[1]._default_value = token_id
+            #node.stack[1].stack[2]._default_value = seq_num + 1
+            #node.stack[1].stack[3]._default_value = req_id + 1
+    print_dbg("sec ch from node names " + str(node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
+    print_dbg("sec ch from session " + str(session.nodes[3].names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
+    #print_dbg("all values of sec ch id " + str(pprint(vars(node.stack[1].stack[0]))))
 
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
@@ -98,7 +102,7 @@ def main():
         keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
         index_start=1,
-        index_end=3)
+        index_end=1)
         #index_start=291,
         #index_end=293)
         
@@ -117,12 +121,10 @@ def main():
 
     # TODO procmon and netmon
 
-    session.fuzz()
-
-    '''try:
+    try:
         session.fuzz()
     except KeyboardInterrupt:
-        pass'''
+        pass
 
 if __name__ == "__main__":
     main()
