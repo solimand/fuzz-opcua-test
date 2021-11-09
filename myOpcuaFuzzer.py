@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from fuzzConstants import HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME, OPEN_MSG_TYPE
+from fuzzConstants import GET_ENDPOINTS_MSG_NAME, HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME, OPEN_MSG_TYPE
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
-from msgDefinitions import hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, print_dbg, CLOSE_MSG_BODY_NAME
+from msgDefinitions import hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, print_dbg, get_endpoints_msg
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
@@ -50,7 +50,9 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
     print_dbg("sec ch from node names " + str(node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
     #print_dbg("sec ch from session " + str(session.nodes[3].names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
     #print_dbg("all values of sec ch id " + str(pprint(vars(node.stack[1].stack[0]))))
+open_callback.__doc__ = "Callback setting parameters of secure channel"
 
+#TODO callback for endpoint url
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
@@ -90,7 +92,8 @@ def main():
     open_msg_nf()
     #open_msg()
     close_msg()
-    
+    get_endpoints_msg()
+
     session = Session(
         target=Target(
             connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
@@ -112,6 +115,8 @@ def main():
 
     session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME))
+
+    session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
 
     # session graph PNG creation
     #with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
