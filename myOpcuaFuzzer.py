@@ -47,11 +47,8 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
         node.names[CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
         #OLD VERS -> node.stack[1] -> msg Body
             #node.stack[1].stack[0]._default_value = sec_channel_id
-            #node.stack[1].stack[1]._default_value = token_id
-            #node.stack[1].stack[2]._default_value = seq_num + 1
-            #node.stack[1].stack[3]._default_value = req_id + 1
     print_dbg("sec ch from node names " + str(node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
-    print_dbg("sec ch from session " + str(session.nodes[3].names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
+    #print_dbg("sec ch from session " + str(session.nodes[3].names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
     #print_dbg("all values of sec ch id " + str(pprint(vars(node.stack[1].stack[0]))))
 
 
@@ -64,7 +61,7 @@ def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
     msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
     if (msg_type == ACK_MSG_TYPE):
         print_dbg("ACK received!")
-    
+hello_callback.__doc__ = "Callback to check the ACK"
 
 def generic_callback(target, fuzz_data_logger, session, node=None, *_, **__):
     res = session.last_recv
@@ -80,6 +77,7 @@ def generic_callback(target, fuzz_data_logger, session, node=None, *_, **__):
         print_dbg("OPN received!")
     if (msg_type == ACK_MSG_TYPE):
         print_dbg("ACK received!")
+generic_callback.__doc__ = "Callback executed after each session graph test case"
 
 
 # -----------------------MAIN---------------------
@@ -96,21 +94,21 @@ def main():
     session = Session(
         target=Target(
             connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
-        #post_test_case_callbacks=[generic_callback],
+        #post_test_case_callbacks=[generic_callback], #executed at the end of the chain
         sleep_time=0, #sleep at the end of the graph
         receive_data_after_fuzz=True, #receive last response if there is
         keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
         index_start=1,
-        index_end=1)
+        index_end=10)
         #index_start=291,
         #index_end=293)
         
     #session.connect(s_get(HELLO_MSG_NAME), callback=hello_callback)
     session.connect(s_get(HELLO_MSG_NAME))
 
-    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
-    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
+    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
+    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
 
     session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME))
