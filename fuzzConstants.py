@@ -52,5 +52,12 @@ CLOSE_MSG_SEQ_NUM_NODE_FIELD = CLOSE_MSG_NAME + "." + CLOSE_MSG_BODY_NAME + "." 
 CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD = CLOSE_MSG_NAME + "." + CLOSE_MSG_BODY_NAME + "." + SEC_REQ_ID_PRIM_NAME
 
 
+# create session req related
+CREATE_SESSION_MSG_NAME = 'Create Session'
+CREATE_SESSION_MSG_HEADER_NAME = 'cs-header'
+CREATE_SESSION_MSG_BODY_NAME = 'cs-body'
+CREATE_SESSION_MSG_TYPE_ID = 461
+CREATE_SESSION_MSG_APP_URI_STRING = 'urn:pcname:application'.encode('utf-8')
 
+# TODO activate session req related
 
