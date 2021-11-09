@@ -2,11 +2,13 @@
 
 from fuzzConstants import GET_ENDPOINTS_MSG_NAME, HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME, OPEN_MSG_TYPE
 
-from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD
+from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME
+
+from fuzzConstants import GET_ENDPOINTS_MSG_BODY_NAME, GET_ENDPOINTS_MSG_SEC_CH_ID_NODE_FIELD,GET_ENDPOINTS_MSG_TOKEN_ID_NODE_FIELD, GET_ENDPOINTS_MSG_SEQ_NUM_NODE_FIELD, GET_ENDPOINTS_MSG_SEQ_REQ_ID_NODE_FIELD
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
-from msgDefinitions import hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, print_dbg, get_endpoints_msg
+from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, create_session_msg
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
@@ -39,17 +41,25 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
         #print_dbg("sequence num  "+str(seq_num)+" req id "+str(req_id))
         #print_dbg("sec ch id "+str(sec_channel_id)+" token id "+str(token_id))
     except struct.error:
-        fuzz_data_logger.log_error('ERR - could not unpack response')
+        fuzz_data_logger.log_error('ERR - could not unpack response')    
     else:
-        node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
-        node.names[CLOSE_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
-        node.names[CLOSE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
-        node.names[CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
-        #OLD VERS -> node.stack[1] -> msg Body
-            #node.stack[1].stack[0]._default_value = sec_channel_id
-    print_dbg("sec ch from node names " + str(node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
-    #print_dbg("sec ch from session " + str(session.nodes[3].names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
-    #print_dbg("all values of sec ch id " + str(pprint(vars(node.stack[1].stack[0]))))
+        # node.stack[1] -> msg Body
+        if (node.stack[1]._name == GET_ENDPOINTS_MSG_BODY_NAME):
+            print_dbg('getendpoint version')
+            node.names[GET_ENDPOINTS_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[GET_ENDPOINTS_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[GET_ENDPOINTS_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[GET_ENDPOINTS_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            print_dbg("sec ch from node names " + str(node.names[GET_ENDPOINTS_MSG_SEC_CH_ID_NODE_FIELD]))
+        elif (node.stack[1]._name == CLOSE_MSG_BODY_NAME):
+            print_dbg('close version')
+            node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[CLOSE_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[CLOSE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            print_dbg("sec ch from node names " + str(node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
+        else:
+            fuzz_data_logger.log_error('ERR - callback not implementated')
 open_callback.__doc__ = "Callback setting parameters of secure channel"
 
 #TODO callback for endpoint url
@@ -91,8 +101,10 @@ def main():
     #hello_msg()
     open_msg_nf()
     #open_msg()
-    close_msg()
+    close_msg_nf()
+    #close_msg()
     get_endpoints_msg()
+    #create_session_msg()
 
     session = Session(
         target=Target(
@@ -103,7 +115,7 @@ def main():
         keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
         index_start=1,
-        index_end=10)
+        index_end=3)
         #index_start=291,
         #index_end=293)
         
