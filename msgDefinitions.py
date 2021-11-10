@@ -1,11 +1,14 @@
-from fuzzConstants import CLOSE_MSG_TYPE_ID, HELLO_MSG_BODY_NAME, ENDPOINT_STRING, CHUNK_TYPE, COMMON_MSG_TYPE
-from fuzzConstants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
-from fuzzConstants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
-from fuzzConstants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID, SEC_CH_ID_PRIM_NAME, SEC_TOKEN_ID_PRIM_NAME, SEC_SEQ_NUM_PRIM_NAME, SEC_REQ_ID_PRIM_NAME
-from fuzzConstants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET_ENDPOINTS_MSG_BODY_NAME, GET_ENDPOINTS_MSG_TYPE_ID
-from fuzzConstants import CREATE_SESSION_MSG_NAME, CREATE_SESSION_MSG_HEADER_NAME, CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_TYPE_ID, CREATE_SESSION_MSG_APP_URI_STRING
+from fuzzConstants import ENDPOINT_STRING, CHUNK_TYPE, COMMON_MSG_TYPE, UNIX_TIME
 
-from fuzzConstants import UNIX_TIME
+from fuzzConstants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
+
+from fuzzConstants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
+
+from fuzzConstants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID, SEC_CH_ID_PRIM_NAME, SEC_TOKEN_ID_PRIM_NAME, SEC_SEQ_NUM_PRIM_NAME, SEC_REQ_ID_PRIM_NAME
+
+from fuzzConstants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET_ENDPOINTS_MSG_BODY_NAME, GET_ENDPOINTS_MSG_TYPE_ID
+
+from fuzzConstants import CREATE_SESSION_MSG_NAME, CREATE_SESSION_MSG_HEADER_NAME, CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_TYPE_ID, CREATE_SESSION_MSG_APP_URI_STRING, CREATE_SESSION_MSG_APP_NAME_STRING, CREATE_SESSION_MSG_SESSION_NAME, CREATE_SESSION_MSG_PRODUCER_URI_STRING
 
 from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_size, s_qword
 
@@ -217,7 +220,6 @@ def get_endpoints_msg():
         s_bytes(b'\xFF\xFF\xFF\xFF', name='locale ids')
         s_bytes(b'\xFF\xFF\xFF\xFF', name='profile ids')
 
-
 def get_endpoints_msg_nf():
     s_initialize(GET_ENDPOINTS_MSG_NAME)
 
@@ -272,21 +274,41 @@ def create_session_msg():
         s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
         s_dword(1000, name='timeout hint')
         s_bytes(b'\x00\x00\x00', name='additional header')
+
         # application description
         s_dword(len(CREATE_SESSION_MSG_APP_URI_STRING), name='Application Uri Length')        
         s_bytes(CREATE_SESSION_MSG_APP_URI_STRING, name='Application Uri')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Product Uri') #TODO change in STRING
-        s_bytes(0, name='Application Name') #TODO this is the app name
+
+        # TODO test -> ProdURI - AppName - DiscoveryUrls - SessName - ClientNonce
+
+        #s_bytes(b'\xFF\xFF\xFF\xFF', name='Product Uri')
+        s_dword(len(CREATE_SESSION_MSG_PRODUCER_URI_STRING), name='Production Uri Length')        
+        s_bytes(CREATE_SESSION_MSG_PRODUCER_URI_STRING, name='Production Uri')
+        #s_byte(0, name='Application Name') 
+        s_bytes(b'\x02', name='App Name Has text')
+        s_dword(len(CREATE_SESSION_MSG_APP_NAME_STRING), name='Application Name Length')        
+        s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Application Name')
+
         s_dword(1, name='Application Type')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='GatewayServerUri') # opcua null string
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryProfileUri') # opcua null string
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryUrls') # array of string (dim 0)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='GatewayServerUri')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryProfileUri')
+
+        #s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryUrls') # array of string (dim 0)
+        s_bytes(b'\x00\x00\x00\x00', name='DiscoveryUrls') 
+
         # create session parameter
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='ServerUri') # opcua null string
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='ServerUri')
         s_dword(len(ENDPOINT_STRING), name='Url length')
         s_bytes(ENDPOINT_STRING, name='Endpoint url')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='SessionName') # TODO string same as app uri
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientNonce') # TODO 
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientCertificate') # null
+
+        #s_bytes(b'\xFF\xFF\xFF\xFF', name='SessionName')
+        s_dword(len(CREATE_SESSION_MSG_SESSION_NAME), name='Session Name Length')        
+        s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Session Name')
+
+        #s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientNonce')
+        s_qword(0, name='ClientNonce first part')
+        s_qword(0, name='ClientNonce second part')
+
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientCertificate')
         s_bytes(struct.pack('d', 1200000.0), name='Requested Session Timeout')
-        s_dword(2147483647, name='MaxResponseMessageSize') # TODO def value
+        s_dword(16777216, name='MaxResponseMessageSize') # original (214748364)

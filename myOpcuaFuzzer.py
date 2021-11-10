@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
-from fuzzConstants import GET_ENDPOINTS_MSG_NAME, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME, OPEN_MSG_TYPE
+from fuzzConstants import OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
 
-from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME
+from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
 
-from fuzzConstants import GET_ENDPOINTS_MSG_BODY_NAME, GET_ENDPOINTS_MSG_SEC_CH_ID_NODE_FIELD,GET_ENDPOINTS_MSG_TOKEN_ID_NODE_FIELD, GET_ENDPOINTS_MSG_SEQ_NUM_NODE_FIELD, GET_ENDPOINTS_MSG_SEQ_REQ_ID_NODE_FIELD
+from fuzzConstants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_BODY_NAME, GET_ENDPOINTS_MSG_SEC_CH_ID_NODE_FIELD,GET_ENDPOINTS_MSG_TOKEN_ID_NODE_FIELD, GET_ENDPOINTS_MSG_SEQ_NUM_NODE_FIELD, GET_ENDPOINTS_MSG_SEQ_REQ_ID_NODE_FIELD
+
+from fuzzConstants import CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_NAME, CREATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, CREATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, CREATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, CREATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
-from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, create_session_msg
+from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
@@ -62,8 +64,16 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[CLOSE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             print_dbg("sec ch from node names " + str(node.names[CLOSE_MSG_SEC_CH_ID_NODE_FIELD]))
+        elif (node.stack[1]._name == CREATE_SESSION_MSG_BODY_NAME):
+            print_dbg('create session version')
+            node.names[CREATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[CREATE_SESSION_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[CREATE_SESSION_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[CREATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            print_dbg("sec ch from node names " + str(node.names[CREATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
         else:
-            fuzz_data_logger.log_error('ERR - callback not implementated')
+            fuzz_data_logger.log_error('ERR - callback not implementated for msg')
+            print('ERR on msg body %s', node.stack[1]._name)
 open_callback.__doc__ = "Callback setting parameters of secure channel"
 
 #TODO callback for endpoint url
@@ -89,9 +99,9 @@ def generic_callback(target, fuzz_data_logger, session, node=None, *_, **__):
     if (msg_type == ERR_MSG_TYPE):
         print_dbg("ERR received!")
         #TODO kinds of error
-    if (msg_type == OPEN_MSG_TYPE):
+    elif (msg_type == OPEN_MSG_TYPE):
         print_dbg("OPN received!")
-    if (msg_type == ACK_MSG_TYPE):
+    elif (msg_type == ACK_MSG_TYPE):
         print_dbg("ACK received!")
 generic_callback.__doc__ = "Callback executed after each session graph test case"
 
@@ -119,12 +129,19 @@ def main():
     # MSGs building----------
     hello_msg_nf()
     #hello_msg()
+
     open_msg_nf()
     #open_msg()
+
     close_msg_nf()
     #close_msg()
-    get_endpoints_msg()
-    #create_session_msg()
+
+    get_endpoints_msg_nf()
+    #get_endpoints_msg()
+    
+    #create_session_msg_nf()
+    create_session_msg()
+
 
     # SESSION building----------
     session = Session(
@@ -148,7 +165,8 @@ def main():
 
     session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
-    
+    session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
+
     # TODO procmon and netmon
     # session graph PNG creation
     #with open(PNG_GRAPH_OUT_FILE, 'wb') as file:

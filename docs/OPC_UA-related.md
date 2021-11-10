@@ -1,7 +1,6 @@
 # Message Formats from Wireshark tcpdump
 
-## OPEN-SECURE-CHANNEL-OPN-Req 
-
+## OPEN-SECURE-CHANNEL-OPN-Req
     Message Type: OPN
     Chunk Type: F
     Message Size: 133
@@ -97,7 +96,6 @@
                         .... ..0. = has xml body: False
 
 # GET-ENDPOINTS-MSG-Req
-
     Message Type: MSG
     Chunk Type: F
     Message Size: 100
@@ -145,6 +143,11 @@
                 ArraySize: 0
             ProfileUris: Array of String
                 ArraySize: 0
+
+# Create Session Service Parameters
+| Name |       Type       |    Description    | 
+|:------:|:------------------:|:-----------------:|
+| clientNonce      | ByteString           |   A random number that should never be used in any other request. This number shall have a minimum length of **32 bytes**. Profiles may increase the required length. The Server shall use this value to prove possession of its Application Instance Certificate in the response. |
 
 # Errors & Error Codes
 - BadDecodingError -> occurs when (...); error code (...)
