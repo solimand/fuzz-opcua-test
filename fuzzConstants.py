@@ -1,5 +1,4 @@
 # connection and commons
-HOST_ADDR = "150.140.188.188"
 OPC_UA_PORT = 4840
 ENDPOINT_STRING = 'opc.tcp://localhost:4840/'.encode('utf-8')
 CHUNK_TYPE = b'F'

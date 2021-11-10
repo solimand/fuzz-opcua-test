@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fuzzConstants import GET_ENDPOINTS_MSG_NAME, HOST_ADDR, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME, OPEN_MSG_TYPE
+from fuzzConstants import GET_ENDPOINTS_MSG_NAME, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, CLOSE_MSG_NAME, OPEN_MSG_TYPE
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME
 
@@ -12,6 +12,10 @@ from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_ms
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
+
+from argparse import ArgumentParser
+from ipaddress import ip_address
+#import argparse, ipaddress
 
 #DBG
 from pprint import pprint #print obj attributes -> pprint(vars(obj))
@@ -95,8 +99,24 @@ generic_callback.__doc__ = "Callback executed after each session graph test case
 # -----------------------MAIN---------------------
 # TODO add args to select which tests
 def main():
-    print_dbg("starting fuzzer")    
+    # ARGS parsing----------
+    parser = ArgumentParser(description='Fuzzing OPC UA server.')
+    parser.add_argument('addr', metavar='ip-addr', type=str, help='The server host IP address')
+    args = parser.parse_args()
 
+    # IP ADDR validiation----------
+    try:
+        HOST_ADDR = ip_address(args.addr)
+        print_dbg('%s is starting fuzzing the OPC UA server at %s IPv%s address.' % (parser.prog, HOST_ADDR, HOST_ADDR.version))
+    except ValueError:
+        print('address/netmask is invalid: %s' % args.addr)
+        print('Usage : %s ipAddress' % parser.prog)
+        return
+    except:
+        print('Usage : %s ipAddress' % args.addr)
+        return
+
+    # MSGs building----------
     hello_msg_nf()
     #hello_msg()
     open_msg_nf()
@@ -106,40 +126,39 @@ def main():
     get_endpoints_msg()
     #create_session_msg()
 
+    # SESSION building----------
     session = Session(
         target=Target(
-            connection=TCPSocketConnection(HOST_ADDR, OPC_UA_PORT)),
+            connection=TCPSocketConnection(str(HOST_ADDR), OPC_UA_PORT)),
         #post_test_case_callbacks=[generic_callback], #executed at the end of the chain
         sleep_time=0, #sleep at the end of the graph
         receive_data_after_fuzz=True, #receive last response if there is
         keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
         index_start=1,
-        index_end=3)
+        index_end=1)
         #index_start=291,
         #index_end=293)
         
+    # GRAPH building----------
     session.connect(s_get(HELLO_MSG_NAME))
 
     session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
-    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
+    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME)) # ACK callback only for debug 
 
     session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
-    #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME))
-
     session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
-
+    
+    # TODO procmon and netmon
     # session graph PNG creation
     #with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
     #    file.write(session.render_graph_graphviz().create_png())
-
-    # TODO procmon and netmon
 
     try:
         session.fuzz()
     except KeyboardInterrupt:
         pass
 
+
 if __name__ == "__main__":
     main()
-
