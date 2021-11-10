@@ -218,6 +218,36 @@ def get_endpoints_msg():
         s_bytes(b'\xFF\xFF\xFF\xFF', name='profile ids')
 
 
+def get_endpoints_msg_nf():
+    s_initialize(GET_ENDPOINTS_MSG_NAME)
+
+    with s_block(GET_ENDPOINTS_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Get endpoints', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(GET_ENDPOINTS_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(GET_ENDPOINTS_MSG_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        # type id  b'\x01\x00\xac\x01 > ac01 > 01ac > 428
+        s_bytes(b'\x01\x00' + struct.pack('<H', GET_ENDPOINTS_MSG_TYPE_ID), name='Type id', fuzzable=False)
+        # request header
+        s_bytes(b'\x00\x00', name='authentication token', fuzzable=False)
+        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_dword(1, name='request handle', fuzzable=False)
+        s_dword(0, name='return diagnostics', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id', fuzzable=False)
+        s_dword(1000, name='timeout hint', fuzzable=False)
+        s_bytes(b'\x00\x00\x00', name='additional header', fuzzable=False)
+        # request parameter
+        s_dword(len(ENDPOINT_STRING), name='Url length', fuzzable=False)
+        s_bytes(ENDPOINT_STRING, name='Endpoint url', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='locale ids', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='profile ids', fuzzable=False)
+
+
 # -----------------------CREATE SESSION MSG---------------------
 def create_session_msg():
     s_initialize(CREATE_SESSION_MSG_NAME)

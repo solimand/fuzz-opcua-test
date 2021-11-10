@@ -119,7 +119,6 @@ def main():
         #index_start=291,
         #index_end=293)
         
-    #session.connect(s_get(HELLO_MSG_NAME), callback=hello_callback)
     session.connect(s_get(HELLO_MSG_NAME))
 
     session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
