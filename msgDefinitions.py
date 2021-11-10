@@ -306,8 +306,10 @@ def create_session_msg():
         s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Session Name')
 
         #s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientNonce')
-        s_qword(0, name='ClientNonce first part')
-        s_qword(0, name='ClientNonce second part')
+        s_qword(0, name='ClientNonce part 1')
+        s_qword(0, name='ClientNonce part 2')
+        s_qword(0, name='ClientNonce part 3')
+        s_qword(0, name='ClientNonce part 4')
 
         s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientCertificate')
         s_bytes(struct.pack('d', 1200000.0), name='Requested Session Timeout')

@@ -136,8 +136,8 @@ def main():
     close_msg_nf()
     #close_msg()
 
-    get_endpoints_msg_nf()
-    #get_endpoints_msg()
+    #get_endpoints_msg_nf()
+    get_endpoints_msg()
     
     #create_session_msg_nf()
     create_session_msg()
@@ -165,7 +165,7 @@ def main():
 
     session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
-    session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
+    #session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
 
     # TODO procmon and netmon
     # session graph PNG creation
