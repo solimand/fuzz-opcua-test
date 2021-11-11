@@ -10,6 +10,8 @@ from fuzzConstants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME,
 
 from fuzzConstants import CREATE_SESSION_MSG_NAME, CREATE_SESSION_MSG_HEADER_NAME, CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_TYPE_ID, CREATE_SESSION_MSG_APP_URI_STRING, CREATE_SESSION_MSG_APP_NAME_STRING, CREATE_SESSION_MSG_SESSION_NAME, CREATE_SESSION_MSG_PRODUCER_URI_STRING
 
+from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_NAME, ACTIVATE_SESSION_MSG_HEADER_NAME, ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TYPE_ID, ACTIVATE_SESSION_MSG_LOCALE_ID_STRING, ACTIVATE_SESSION_MSG_NUM_ID, ACTIVATE_SESSION_MSG_POLICY_ID
+
 from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_size, s_qword
 
 # Dates
@@ -267,50 +269,153 @@ def create_session_msg():
         # type id  b'\x01\x00\xcd\x01 > cd01 > 01cd > 461
         s_bytes(b'\x01\x00' + struct.pack('<H', CREATE_SESSION_MSG_TYPE_ID), name='Type id', fuzzable=False)
         # request header
-        s_bytes(b'\x00\x00', name='authentication token')
+        s_bytes(b'\x00\x00', name='authentication token', fuzzable=False) #fuzzing auth toke > BadInternalError
         s_qword(opcua_time(), name='timestamp')
         s_dword(1, name='request handle')
         s_dword(0, name='return diagnostics')
         s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
         s_dword(1000, name='timeout hint')
         s_bytes(b'\x00\x00\x00', name='additional header')
-
-        # application description
+            # application description
         s_dword(len(CREATE_SESSION_MSG_APP_URI_STRING), name='Application Uri Length')        
         s_bytes(CREATE_SESSION_MSG_APP_URI_STRING, name='Application Uri')
-
-        # TODO test -> ProdURI - AppName - DiscoveryUrls - SessName - ClientNonce
-
-        #s_bytes(b'\xFF\xFF\xFF\xFF', name='Product Uri')
         s_dword(len(CREATE_SESSION_MSG_PRODUCER_URI_STRING), name='Production Uri Length')        
         s_bytes(CREATE_SESSION_MSG_PRODUCER_URI_STRING, name='Production Uri')
-        #s_byte(0, name='Application Name') 
         s_bytes(b'\x02', name='App Name Has text')
         s_dword(len(CREATE_SESSION_MSG_APP_NAME_STRING), name='Application Name Length')        
         s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Application Name')
-
         s_dword(1, name='Application Type')
         s_bytes(b'\xFF\xFF\xFF\xFF', name='GatewayServerUri')
         s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryProfileUri')
-
-        #s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryUrls') # array of string (dim 0)
         s_bytes(b'\x00\x00\x00\x00', name='DiscoveryUrls') 
-
-        # create session parameter
+            # create session parameter
         s_bytes(b'\xFF\xFF\xFF\xFF', name='ServerUri')
         s_dword(len(ENDPOINT_STRING), name='Url length')
         s_bytes(ENDPOINT_STRING, name='Endpoint url')
-
-        #s_bytes(b'\xFF\xFF\xFF\xFF', name='SessionName')
         s_dword(len(CREATE_SESSION_MSG_SESSION_NAME), name='Session Name Length')        
         s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Session Name')
-
-        #s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientNonce')
         s_qword(0, name='ClientNonce part 1')
         s_qword(0, name='ClientNonce part 2')
         s_qword(0, name='ClientNonce part 3')
         s_qword(0, name='ClientNonce part 4')
-
         s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientCertificate')
         s_bytes(struct.pack('d', 1200000.0), name='Requested Session Timeout')
-        s_dword(16777216, name='MaxResponseMessageSize') # original (214748364)
+        s_dword(16777216, name='MaxResponseMessageSize')
+
+def create_session_msg_nf():
+    s_initialize(CREATE_SESSION_MSG_NAME)
+
+    with s_block(CREATE_SESSION_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Create session', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(CREATE_SESSION_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(CREATE_SESSION_MSG_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        # type id  b'\x01\x00\xcd\x01 > cd01 > 01cd > 461
+        s_bytes(b'\x01\x00' + struct.pack('<H', CREATE_SESSION_MSG_TYPE_ID), name='Type id', fuzzable=False)
+        # request header
+        s_bytes(b'\x00\x00', name='authentication token', fuzzable=False) #fuzzing auth toke > BadInternalError
+        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_dword(1, name='request handle', fuzzable=False)
+        s_dword(0, name='return diagnostics', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id', fuzzable=False)
+        s_dword(1000, name='timeout hint', fuzzable=False)
+        s_bytes(b'\x00\x00\x00', name='additional header', fuzzable=False)
+            # application description
+        s_dword(len(CREATE_SESSION_MSG_APP_URI_STRING), name='Application Uri Length', fuzzable=False)        
+        s_bytes(CREATE_SESSION_MSG_APP_URI_STRING, name='Application Uri', fuzzable=False)
+        s_dword(len(CREATE_SESSION_MSG_PRODUCER_URI_STRING), name='Production Uri Length', fuzzable=False)        
+        s_bytes(CREATE_SESSION_MSG_PRODUCER_URI_STRING, name='Production Uri', fuzzable=False)
+        s_bytes(b'\x02', name='App Name Has text', fuzzable=False)
+        s_dword(len(CREATE_SESSION_MSG_APP_NAME_STRING), name='Application Name Length', fuzzable=False)        
+        s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Application Name', fuzzable=False)
+        s_dword(1, name='Application Type', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='GatewayServerUri', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryProfileUri', fuzzable=False)
+        s_bytes(b'\x00\x00\x00\x00', name='DiscoveryUrls', fuzzable=False) 
+            # create session parameter
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='ServerUri', fuzzable=False)
+        s_dword(len(ENDPOINT_STRING), name='Url length', fuzzable=False)
+        s_bytes(ENDPOINT_STRING, name='Endpoint url', fuzzable=False)
+        s_dword(len(CREATE_SESSION_MSG_SESSION_NAME), name='Session Name Length', fuzzable=False)        
+        s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Session Name', fuzzable=False)
+        s_qword(0, name='ClientNonce part 1', fuzzable=False)
+        s_qword(0, name='ClientNonce part 2', fuzzable=False)
+        s_qword(0, name='ClientNonce part 3', fuzzable=False)
+        s_qword(0, name='ClientNonce part 4', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientCertificate', fuzzable=False)
+        s_bytes(struct.pack('d', 1200000.0), name='Requested Session Timeout', fuzzable=False)
+        s_dword(16777216, name='MaxResponseMessageSize', fuzzable=False)
+
+
+# -----------------------ACTIVATE SESSION MSG---------------------
+#TODO check!!!
+def activate_session_msg():
+    s_initialize(ACTIVATE_SESSION_MSG_NAME)
+
+    with s_block(ACTIVATE_SESSION_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Activate session', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(ACTIVATE_SESSION_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(ACTIVATE_SESSION_MSG_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from open callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        # type id  b'\x01\x00\xd3\x01 > d301 > 01d3 > 467
+        s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_TYPE_ID), name='Type id', fuzzable=False)
+            # request header
+        s_dword(4, name='Encoding mask guid')
+        s_bytes(b'\x01\x00', name='Namespace idx')
+        # 16B -> 34 37 bd c7 3a 2a 4a 37 75 a7 0a 00 a8 da 6d 26
+        s_bytes(b'\x34\x37\xbd\xc7\x3a\x2a\x4a\x37\x75\xa7\x0a\x00\xa8\xda\x6d\x26', name='Identifier guid')
+        s_qword(opcua_time(), name='timestamp')
+        s_dword(1, name='Request handle')
+        s_dword(0, name='Return diagnostics')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id')
+        s_dword(10000, name='Timeout hint')
+        s_bytes(b'\x00\x00\x00', name='Additional header')
+            # ClientSignature: SignatureData
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client algorithm')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client signature')
+        # ClientSoftwareCertificates: Array of SignedSoftwareCertificate
+        s_dword(0, name='Array size client cert')
+            # LocaleIds: Array of String = array size & LocaleIds: en-US -> \x65\x6e\x2d\x55\x53
+        s_dword(0, name='Array size locale ids')
+        s_dword(len(ACTIVATE_SESSION_MSG_LOCALE_ID_STRING), name='Locale id length')
+        s_bytes(ACTIVATE_SESSION_MSG_LOCALE_ID_STRING, name='Locale id')
+        '''# UserIdentityToken: ExtensionObject = 
+            # EncodingMask: 0x01, EncodingMask: Four byte encoded Numeric & Namespace Index: 0 & Identifier Numeric: 321
+            # &
+            # EncodingMask: 0x01, has binary body
+            # &
+            # AnonymousIdentityToken: AnonymousIdentityToken (size+string)'''
+        s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_NUM_ID), name='user type id', fuzzable=False)
+        s_bytes(b'\x01', name='Encoding mask user id')
+        # TODO a int here what it means?
+        s_dword(len(ACTIVATE_SESSION_MSG_POLICY_ID), name='Policy id length')
+        s_bytes(ACTIVATE_SESSION_MSG_POLICY_ID, name='Policy id')
+        ''' OLD VERSION
+            policy_id = 'open62541-username-policy'.encode('utf-8')
+            username = 'user1'.encode('utf-8')
+            password = 'password'.encode('utf-8')
+            s_dword(len(policy_id) + len(username) + len(password) + 4 + 4 + 4 + 4,
+                    name='length user id token')  # 3 length fields + algorithm
+            s_dword(len(policy_id), name='id length')
+            s_bytes(policy_id, name='policy id', fuzzable=False)
+            s_dword(len(username), name='username length')
+            s_bytes(username, name='username')
+            s_dword(len(password), name='password length')
+            s_bytes(password, name='password')
+            s_bytes(b'\xFF\xFF\xFF\xFF', name='encryption algorithm')
+        '''
+        # UserTokenSignature: SignatureData
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token sign algorithm')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token signature')
+
+        

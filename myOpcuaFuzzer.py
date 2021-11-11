@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fuzzConstants import OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
+from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
 
@@ -8,9 +8,11 @@ from fuzzConstants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_BODY_NAME, G
 
 from fuzzConstants import CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_NAME, CREATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, CREATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, CREATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, CREATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD
 
+from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_NAME, ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD
+
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
-from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg
+from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
@@ -24,6 +26,7 @@ from pprint import pprint #print obj attributes -> pprint(vars(obj))
 
 
 # -----------------------CallBacks------------------
+#TODO callback for endpoint url
 def open_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
     if not res:
@@ -71,12 +74,32 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[CREATE_SESSION_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[CREATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             print_dbg("sec ch from node names " + str(node.names[CREATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
+        elif (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
+            print_dbg('activate session version')
+            node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
         else:
             fuzz_data_logger.log_error('ERR - callback not implementated for msg')
             print('ERR on msg body %s', node.stack[1]._name)
 open_callback.__doc__ = "Callback setting parameters of secure channel"
 
-#TODO callback for endpoint url
+def create_callback(target, fuzz_data_logger, session, node, *_, **__):
+    res = session.last_recv
+    if not res:
+        fuzz_data_logger.log_fail('ERR - empty response')
+        return
+    try:
+        msg_type_tuple = struct.unpack('ccc', res[0:3])
+        msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
+        sec_channel_id, token_id, seq_num, req_id= struct.unpack('iiii', res[8:24])
+        print_dbg('sec ch ' + str(sec_channel_id) + ' tok id ' + str(token_id))
+        print_dbg('seq num ' + str(seq_num) + ' req id ' + str(req_id))
+        #TODO fix from here        
+    except struct.error:
+        fuzz_data_logger.log_error('ERR - could not unpack response') 
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
@@ -136,12 +159,14 @@ def main():
     close_msg_nf()
     #close_msg()
 
-    #get_endpoints_msg_nf()
-    get_endpoints_msg()
+    get_endpoints_msg_nf()
+    #get_endpoints_msg()
     
-    #create_session_msg_nf()
-    create_session_msg()
-
+    create_session_msg_nf()
+    #create_session_msg()
+    
+    #activate_session_msg_nf()
+    activate_session_msg()
 
     # SESSION building----------
     session = Session(
@@ -158,14 +183,29 @@ def main():
         #index_end=293)
         
     # GRAPH building----------
+    ''' OPC client initiatied comm protocol
+        C                                       S
+                            HEL-->
+                            <--ACK
+                    OPEN Req (sec ch)-->
+                    <--OPEN Res (sec ch)
+                    CREATE Req (sess)-->
+                    <--CREATE Res (sess)
+                    ACTIVATE Req (sess)-->
+                    <--ACTIVATE Res (sess)
+    '''
     session.connect(s_get(HELLO_MSG_NAME))
 
     session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME)) # ACK callback only for debug 
 
-    session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
-    session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
-    #session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
+    #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
+    #session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
+
+    session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
+    session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)
+    #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
+
 
     # TODO procmon and netmon
     # session graph PNG creation
