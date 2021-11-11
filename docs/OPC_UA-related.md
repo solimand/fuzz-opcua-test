@@ -144,6 +144,66 @@
             ProfileUris: Array of String
                 ArraySize: 0
 
+# Activate-Session-Msg-Req
+    Message Type: MSG
+    Chunk Type: F
+    Message Size: 146
+    SecureChannelId: 47
+    Security Token Id: 47
+    Security Sequence Number: 53
+    Security RequestId: 3
+    OpcUa Service : Encodeable Object
+        TypeId : ExpandedNodeId
+            NodeId EncodingMask: Four byte encoded Numeric (0x01)
+            NodeId Namespace Index: 0
+            NodeId Identifier Numeric: ActivateSessionRequest (467)
+        ActivateSessionRequest
+            RequestHeader: RequestHeader
+                AuthenticationToken: NodeId
+                    .... 0100 = EncodingMask: GUID (0x4)
+                    Namespace Index: 1
+                    Identifier Guid: c7bd3734-2a3a-374a-75a7-0a00a8da6d26
+                Timestamp: Nov  9, 2021 10:41:58.370239500 CET
+                RequestHandle: 1000002
+                Return Diagnostics: 0x00000000
+                AuditEntryId: [OpcUa Null String]
+                TimeoutHint: 10000
+                AdditionalHeader: ExtensionObject
+                    TypeId: ExpandedNodeId
+                        EncodingMask: 0x00, EncodingMask: Two byte encoded Numeric
+                            .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
+                            .0.. .... = has server index: False
+                            0... .... = has namespace uri: False
+                        Identifier Numeric: 0
+                    EncodingMask: 0x00
+                        .... ...0 = has binary body: False
+                        .... ..0. = has xml body: False
+            ClientSignature: SignatureData
+                Algorithm: [OpcUa Null String]
+                Signature: <MISSING>[OpcUa Null ByteString]
+            ClientSoftwareCertificates: Array of SignedSoftwareCertificate
+                ArraySize: 0
+            LocaleIds: Array of String
+                ArraySize: 1
+                [0]: LocaleIds: en-US
+            UserIdentityToken: ExtensionObject
+                TypeId: ExpandedNodeId
+                    EncodingMask: 0x01, EncodingMask: Four byte encoded Numeric
+                        .... 0001 = EncodingMask: Four byte encoded Numeric (0x1)
+                        .0.. .... = has server index: False
+                        0... .... = has namespace uri: False
+                    Namespace Index: 0
+                    Identifier Numeric: 321
+                EncodingMask: 0x01, has binary body
+                    .... ...1 = has binary body: True
+                    .... ..0. = has xml body: False
+                AnonymousIdentityToken: AnonymousIdentityToken
+                    PolicyId: open62541-anonymous-policy
+            UserTokenSignature: SignatureData
+                Algorithm: [OpcUa Null String]
+                Signature: <MISSING>[OpcUa Null ByteString]
+
+
 # Create Session Service Parameters
 | Name |       Type       |    Description    | 
 |:------:|:------------------:|:-----------------:|
