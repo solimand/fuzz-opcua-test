@@ -353,7 +353,6 @@ def create_session_msg_nf():
 
 
 # -----------------------ACTIVATE SESSION MSG---------------------
-#TODO check!!!
 def activate_session_msg():
     s_initialize(ACTIVATE_SESSION_MSG_NAME)
 
@@ -418,4 +417,17 @@ def activate_session_msg():
         s_bytes(b'\xFF\xFF\xFF\xFF', name='User token sign algorithm')
         s_bytes(b'\xFF\xFF\xFF\xFF', name='User token signature')
 
-        
+
+# TODO 
+# 37 Service Set:
+#   Discovery: FindServers - FindServersOnNetwork - GetEndpoints - RegisterServer(called from server, not interesting) - 
+#   SecureChannle: OpenSecureChannel - CloseSecureChannel - 
+#   Session: CreateSession - ActivateSession - 
+#   Node Management (modify Addr Space): AddNodes - DeleteNodes - AddReferences - DeleteReferences - 
+#   View (navigate Addr Space): Browse - BrowseNext - TranslateBrowsePathsToNodeIds - RegisterNodes - UnregisterNodes - 
+#   Query: QueryFirst - QueryNext - 
+#   Attribute: Read (read one or more Attributes of one or mode Nodes) - Write - HistoryRead - HistoryUpdate - 
+#   Method: Call - 
+#   MonitoredItem: CreateMonitoredItem - 
+# Abstract services: Browse, Subscribe
+#        

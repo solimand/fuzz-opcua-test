@@ -203,6 +203,15 @@ def main():
 
                     ACTIVATE Req (sess)-->
                     <--ACTIVATE Res (sess)
+
+                    READ Req-->
+                    <--READ res
+
+                    CLOSE Sess Req-->
+                    <--CLOSE Sess Res
+
+                    CLOSE Sec Ch Req-->
+                    <--CLOSE Sec ch Res
     '''
     session.connect(s_get(HELLO_MSG_NAME))
 
