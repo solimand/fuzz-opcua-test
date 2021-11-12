@@ -370,7 +370,7 @@ def activate_session_msg():
         # type id  b'\x01\x00\xd3\x01 > d301 > 01d3 > 467
         s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_TYPE_ID), name='Type id', fuzzable=False)
             # request header
-        s_dword(4, name='Encoding mask guid')
+        s_dword(4, name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
         s_bytes(b'\x01\x00', name='Namespace idx')
         # 16B -> 34 37 bd c7 3a 2a 4a 37 75 a7 0a 00 a8 da 6d 26
         s_bytes(b'\x34\x37\xbd\xc7\x3a\x2a\x4a\x37\x75\xa7\x0a\x00\xa8\xda\x6d\x26', name='Identifier guid')

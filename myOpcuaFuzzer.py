@@ -95,9 +95,16 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
         msg_type_tuple = struct.unpack('ccc', res[0:3])
         msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
         sec_channel_id, token_id, seq_num, req_id= struct.unpack('iiii', res[8:24])
-        print_dbg('sec ch ' + str(sec_channel_id) + ' tok id ' + str(token_id))
-        print_dbg('seq num ' + str(seq_num) + ' req id ' + str(req_id))
-        #TODO fix from here        
+        if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
+            print_dbg('activare sess version')
+            node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
+        else:
+            fuzz_data_logger.log_error('ERR - callback not implementated for msg')
+            print('ERR on msg body %s', node.stack[1]._name)
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response') 
 
@@ -187,10 +194,13 @@ def main():
         C                                       S
                             HEL-->
                             <--ACK
+
                     OPEN Req (sec ch)-->
                     <--OPEN Res (sec ch)
+
                     CREATE Req (sess)-->
                     <--CREATE Res (sess)
+
                     ACTIVATE Req (sess)-->
                     <--ACTIVATE Res (sess)
     '''
