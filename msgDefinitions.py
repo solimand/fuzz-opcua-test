@@ -368,24 +368,25 @@ def activate_session_msg():
         s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from open callback
         # type id  b'\x01\x00\xd3\x01 > d301 > 01d3 > 467
         s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_TYPE_ID), name='Type id', fuzzable=False)
-            # request header
-        s_dword(4, name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
-        s_bytes(b'\x01\x00', name='Namespace idx')
-        # 16B -> 34 37 bd c7 3a 2a 4a 37 75 a7 0a 00 a8 da 6d 26
-        s_bytes(b'\x34\x37\xbd\xc7\x3a\x2a\x4a\x37\x75\xa7\x0a\x00\xa8\xda\x6d\x26', name='Identifier guid')
-        s_qword(opcua_time(), name='timestamp')
-        s_dword(1, name='Request handle')
-        s_dword(0, name='Return diagnostics')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id')
+        # request header
+        #s_dword(4, name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
+        s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
+        s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)
+        # 16B -> a6 b5 e0 ea 33 7f be 45 6a 36 e3 5e 91 59 b5 9b 
+        s_bytes(b'\xa6\xb5\xe0\xea\x33\x7f\xbe\x45\x6a\x36\xe3\x5e\x91\x59\xb5\x9b', name='Identifier guid', fuzzable=False)
+        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_dword(1, name='Request handle', fuzzable=False)
+        s_dword(0, name='Return diagnostics', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False) # malformed if negative value
         s_dword(10000, name='Timeout hint')
         s_bytes(b'\x00\x00\x00', name='Additional header')
             # ClientSignature: SignatureData
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client algorithm')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client algorithm', fuzzable=False) # malformed if negative value
         s_bytes(b'\xFF\xFF\xFF\xFF', name='Client signature')
         # ClientSoftwareCertificates: Array of SignedSoftwareCertificate
         s_dword(0, name='Array size client cert')
             # LocaleIds: Array of String = array size & LocaleIds: en-US -> \x65\x6e\x2d\x55\x53
-        s_dword(0, name='Array size locale ids')
+        s_dword(1, name='Array size locale ids')
         s_dword(len(ACTIVATE_SESSION_MSG_LOCALE_ID_STRING), name='Locale id length')
         s_bytes(ACTIVATE_SESSION_MSG_LOCALE_ID_STRING, name='Locale id')
         '''# UserIdentityToken: ExtensionObject = 
@@ -395,10 +396,10 @@ def activate_session_msg():
             # &
             # AnonymousIdentityToken: AnonymousIdentityToken (size+string)'''
         s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_NUM_ID), name='user type id', fuzzable=False)
-        s_bytes(b'\x01', name='Encoding mask user id')
-        # TODO a int here what it means?
-        s_dword(len(ACTIVATE_SESSION_MSG_POLICY_ID), name='Policy id length')
-        s_bytes(ACTIVATE_SESSION_MSG_POLICY_ID, name='Policy id')
+        s_bytes(b'\x01', name='Encoding mask user id', fuzzable=False)
+        #TODO fix add int here
+        s_dword(len(ACTIVATE_SESSION_MSG_POLICY_ID), name='Policy id length', fuzzable=False)
+        s_bytes(ACTIVATE_SESSION_MSG_POLICY_ID, name='Policy id', fuzzable=False)
         ''' OLD VERSION
             policy_id = 'open62541-username-policy'.encode('utf-8')
             username = 'user1'.encode('utf-8')
@@ -414,12 +415,57 @@ def activate_session_msg():
             s_bytes(b'\xFF\xFF\xFF\xFF', name='encryption algorithm')
         '''
         # UserTokenSignature: SignatureData
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token sign algorithm')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token signature')
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token sign algorithm', fuzzable=False) # malformed if negative value
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token signature', fuzzable=False)
+
+def activate_session_msg_nf():
+    s_initialize(ACTIVATE_SESSION_MSG_NAME)
+
+    with s_block(ACTIVATE_SESSION_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Activate session', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(ACTIVATE_SESSION_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(ACTIVATE_SESSION_MSG_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from open callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        # type id  b'\x01\x00\xd3\x01 > d301 > 01d3 > 467
+        s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_TYPE_ID), name='Type id', fuzzable=False)
+            # request header
+        s_dword(4, name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
+        s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)
+        # 16B -> 34 37 bd c7 3a 2a 4a 37 75 a7 0a 00 a8 da 6d 26
+        s_bytes(b'\x34\x37\xbd\xc7\x3a\x2a\x4a\x37\x75\xa7\x0a\x00\xa8\xda\x6d\x26', name='Identifier guid', fuzzable=False)
+        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_dword(1, name='Request handle', fuzzable=False)
+        s_dword(0, name='Return diagnostics', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False)
+        s_dword(10000, name='Timeout hint', fuzzable=False)
+        s_bytes(b'\x00\x00\x00', name='Additional header', fuzzable=False)
+            # ClientSignature: SignatureData
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client algorithm', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client signature', fuzzable=False)
+        # ClientSoftwareCertificates: Array of SignedSoftwareCertificate
+        s_dword(0, name='Array size client cert', fuzzable=False)
+            # LocaleIds: Array of String = array size & LocaleIds: en-US -> \x65\x6e\x2d\x55\x53
+        s_dword(0, name='Array size locale ids', fuzzable=False)
+        s_dword(len(ACTIVATE_SESSION_MSG_LOCALE_ID_STRING), name='Locale id length', fuzzable=False)
+        s_bytes(ACTIVATE_SESSION_MSG_LOCALE_ID_STRING, name='Locale id', fuzzable=False)
+        s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_NUM_ID), name='user type id', fuzzable=False)
+        s_bytes(b'\x01', name='Encoding mask user id', fuzzable=False)
+        s_dword(len(ACTIVATE_SESSION_MSG_POLICY_ID), name='Policy id length', fuzzable=False)
+        s_bytes(ACTIVATE_SESSION_MSG_POLICY_ID, name='Policy id', fuzzable=False)
+        # UserTokenSignature: SignatureData
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token sign algorithm', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token signature', fuzzable=False)
 
 
-# TODO 
-# 37 Service Set:
+# -----------------------ACTIVATE SESSION MSG---------------------
+
+
+# 37 Services:
 #   Discovery: FindServers - FindServersOnNetwork - GetEndpoints - RegisterServer(called from server, not interesting) - 
 #   SecureChannle: OpenSecureChannel - CloseSecureChannel - 
 #   Session: CreateSession - ActivateSession - 
@@ -428,6 +474,6 @@ def activate_session_msg():
 #   Query: QueryFirst - QueryNext - 
 #   Attribute: Read (read one or more Attributes of one or mode Nodes) - Write - HistoryRead - HistoryUpdate - 
 #   Method: Call - 
-#   MonitoredItem: CreateMonitoredItem - 
-# Abstract services: Browse, Subscribe
+#   MonitoredItem: CreateMonitoredItems - ModifyMonitoredItems - SetMonitoringMode - SetTriggering - DeleteMonitoredItems - 
+# Subscription: CreateSubscription - ModifySubscription - SetPublishingMode - Publish - Republish - TransferSubscrition (among sessions) - SeleteSubscriptions 
 #        
