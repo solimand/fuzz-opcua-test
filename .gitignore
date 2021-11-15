@@ -1,6 +1,8 @@
 # Python related
 __pycache__/
 env/
+Pipfile
+Pipfile.lock
 
 # Boofuzz related
 boofuzz-results/
