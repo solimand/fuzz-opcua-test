@@ -20,7 +20,6 @@ import struct
 
 from argparse import ArgumentParser
 from ipaddress import ip_address
-#import argparse, ipaddress
 
 #DBG
 from pprint import pprint #print obj attributes -> pprint(vars(obj))
@@ -98,42 +97,31 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
         msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
         sec_channel_id, token_id, seq_num, req_id= struct.unpack('iiii', res[8:24])
         # 4B (typeid) + 24B (ResHeader) + 3B (first part of SessID) -> next 16B are the SessId-IdGuid
-        #   = 31
-            # first 4B of SessID are reversed A B C D -> D C B A
+        #   = 31 + 16B [from 55 to 71]
+        # 1B (encoding mask) + 2B (namespace id) -> next 16B are the AuthId-IdGuid
+        #   = 3 + 16B [from 74 to 90]
+            # first 4B are reversed A B C D -> D C B A
             # following two couples of 2B are reversed AB CD -> BA DC
             # last 8B are the same as on wire
-        sessId_IdGuid_string = struct.unpack('16c', res[55:71])
-        for i in sessId_IdGuid_string:
-            print_dbg(i)
-        # TODO make this one raw
-        sessId_IdGuid_first = struct.unpack('4c', res[55:59])
-        sessId_IdGuid_first = sessId_IdGuid_first[3].hex() + sessId_IdGuid_first[2].hex() + sessId_IdGuid_first[1].hex() + sessId_IdGuid_first[0].hex()
-        #print_dbg('id guid1 reversed ' + str(sessId_IdGuid_first))
-        sessId_IdGuid_second = struct.unpack('4c', res[59:63])
-        sessId_IdGuid_second = sessId_IdGuid_second[1].hex() + sessId_IdGuid_second[0].hex() + sessId_IdGuid_second[3].hex() + sessId_IdGuid_second[2].hex()
-        #print_dbg('id guid2 reversed ' + str(sessId_IdGuid_second))
-        sessId_IdGuid_third = struct.unpack('8c', res[63:71])
-        sessId_IdGuid_third = list(sessId_IdGuid_third)
-        for i in range(len(sessId_IdGuid_third)):
-            sessId_IdGuid_third[i]=sessId_IdGuid_third[i].hex()
-        #print_dbg('id guid3 reversed ' + str(sessId_IdGuid_third))
-        sessId_IdGuid = sessId_IdGuid_first+sessId_IdGuid_second+''.join(sessId_IdGuid_third)
-        print_dbg('id guid reversed ' + str(sessId_IdGuid))
 
-        # TODO get auth token id guid in the same way
-        #  
-        
+        # I don't need further decoding/encoding (struct.unpack) because I must send them as Bytes
+        #sessId_IdGuid_string = struct.unpack('16c', res[55:71])
+        #print_dbg('sessid string plain' + str(sessId_IdGuid_string))
+
+        #sessId_plain = res[55:71] # I don't know if in future I will need the sessionID 
+        #print_dbg('sessid plain ' + str(sessId_plain))
+        authId_plain = res[74:90]
+        print_dbg('auth plain ' + str(authId_plain))
+
         if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
             print_dbg('activate sess version')
             node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
             node.names[ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
             node.names[ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
-            # TODO write right GUID ID as hex bytes (maybe I must read as byte...)
-            node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = sessId_IdGuid
+            node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
             print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
             print_dbg('guid' +str(node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]))
-
         else:
             fuzz_data_logger.log_error('ERR - callback not implementated for msg')
             print('ERR on msg body %s', node.stack[1]._name)
