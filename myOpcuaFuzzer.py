@@ -86,6 +86,7 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
             print('ERR on msg body %s', node.stack[1]._name)
 open_callback.__doc__ = "Callback setting parameters of secure channel"
 
+# TODO update with AuthToken-IdentifierID
 def create_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
     if not res:

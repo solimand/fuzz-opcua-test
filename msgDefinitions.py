@@ -10,7 +10,9 @@ from fuzzConstants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME,
 
 from fuzzConstants import CREATE_SESSION_MSG_NAME, CREATE_SESSION_MSG_HEADER_NAME, CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_TYPE_ID, CREATE_SESSION_MSG_APP_URI_STRING, CREATE_SESSION_MSG_APP_NAME_STRING, CREATE_SESSION_MSG_SESSION_NAME, CREATE_SESSION_MSG_PRODUCER_URI_STRING
 
-from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_NAME, ACTIVATE_SESSION_MSG_HEADER_NAME, ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TYPE_ID, ACTIVATE_SESSION_MSG_LOCALE_ID_STRING, ACTIVATE_SESSION_MSG_NUM_ID, ACTIVATE_SESSION_MSG_POLICY_ID
+from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_NAME, ACTIVATE_SESSION_MSG_HEADER_NAME, ACTIVATE_SESSION_MSG_TYPE_ID, ACTIVATE_SESSION_MSG_LOCALE_ID_STRING, ACTIVATE_SESSION_MSG_NUM_ID, ACTIVATE_SESSION_MSG_POLICY_ID
+
+from fuzzConstants import READ_MSG_NAME, READ_MSG_HEADER_NAME, READ_MSG_BODY_NAME, READ_MSG_TYPE_ID
 
 from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_size, s_qword
 
@@ -370,11 +372,10 @@ def activate_session_msg():
         # type id  b'\x01\x00\xd3\x01 > d301 > 01d3 > 467
         s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_TYPE_ID), name='Type id', fuzzable=False)
         # request header
-        #s_dword(4, name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
         s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
         s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)
         # 16B -> a6 b5 e0 ea 33 7f be 45 6a 36 e3 5e 91 59 b5 9b 
-        s_bytes(b'\xa6\xb5\xe0\xea\x33\x7f\xbe\x45\x6a\x36\xe3\x5e\x91\x59\xb5\x9b', name='Identifier guid', fuzzable=False)
+        s_bytes(b'\xa6\xb5\xe0\xea\x33\x7f\xbe\x45\x6a\x36\xe3\x5e\x91\x59\xb5\x9b', name='Identifier guid', fuzzable=False) # TODO maybe this is the session not found
         s_qword(opcua_time(), name='timestamp')#, fuzzable=False)
         s_dword(1, name='Request handle', fuzzable=False)
         s_dword(0, name='Return diagnostics', fuzzable=False)
@@ -465,6 +466,21 @@ def activate_session_msg_nf():
 
 
 # -----------------------BROWSE/READ MSG---------------------
+def read_msg():
+    s_initialize(READ_MSG_NAME)
+
+    with s_block(READ_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Activate session', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(READ_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(READ_MSG_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from open callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        # type id  b'\x01\x00\x77\x02 > 7702 > 0277 > 631
+        s_bytes(b'\x01\x00' + struct.pack('<H', READ_MSG_TYPE_ID), name='Type id', fuzzable=False)
 
 
 # 37 Services:
