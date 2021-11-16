@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from ctypes import sizeof
 from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
@@ -8,7 +9,7 @@ from fuzzConstants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_BODY_NAME, G
 
 from fuzzConstants import CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_NAME, CREATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, CREATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, CREATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, CREATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD
 
-from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_NAME, ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD
+from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_NAME, ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD, ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
@@ -96,13 +97,41 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
         msg_type_tuple = struct.unpack('ccc', res[0:3])
         msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
         sec_channel_id, token_id, seq_num, req_id= struct.unpack('iiii', res[8:24])
+        # 4B (typeid) + 24B (ResHeader) + 3B (first part of SessID) -> next 16B are the SessId-IdGuid
+        #   = 31
+            # first 4B of SessID are reversed A B C D -> D C B A
+            # following two couples of 2B are reversed AB CD -> BA DC
+            # last 8B are the same as on wire
+        #sessId_IdGuid = struct.unpack('16c', res[55:71])
+        # TODO make this one raw
+        sessId_IdGuid_first = struct.unpack('4c', res[55:59])
+        sessId_IdGuid_first = sessId_IdGuid_first[3].hex() + sessId_IdGuid_first[2].hex() + sessId_IdGuid_first[1].hex() + sessId_IdGuid_first[0].hex()
+        #print_dbg('id guid1 reversed ' + str(sessId_IdGuid_first))
+        sessId_IdGuid_second = struct.unpack('4c', res[59:63])
+        sessId_IdGuid_second = sessId_IdGuid_second[1].hex() + sessId_IdGuid_second[0].hex() + sessId_IdGuid_second[3].hex() + sessId_IdGuid_second[2].hex()
+        #print_dbg('id guid2 reversed ' + str(sessId_IdGuid_second))
+        sessId_IdGuid_third = struct.unpack('8c', res[63:71])
+        sessId_IdGuid_third = list(sessId_IdGuid_third)
+        for i in range(len(sessId_IdGuid_third)):
+            sessId_IdGuid_third[i]=sessId_IdGuid_third[i].hex()
+        #print_dbg('id guid3 reversed ' + str(sessId_IdGuid_third))
+        sessId_IdGuid = sessId_IdGuid_first+sessId_IdGuid_second+''.join(sessId_IdGuid_third)
+        print_dbg('id guid reversed ' + str(sessId_IdGuid))
+
+        # TODO get auth token id guid in the same way
+        #  
+        
         if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
-            print_dbg('activare sess version')
+            print_dbg('activate sess version')
             node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
             node.names[ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
             node.names[ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            # TODO write right GUID ID as hex bytes (maybe I must read as byte...)
+            node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = sessId_IdGuid
             print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
+            print_dbg('guid' +str(node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]))
+
         else:
             fuzz_data_logger.log_error('ERR - callback not implementated for msg')
             print('ERR on msg body %s', node.stack[1]._name)

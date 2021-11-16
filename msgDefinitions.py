@@ -1,10 +1,10 @@
-from fuzzConstants import ENDPOINT_STRING, CHUNK_TYPE, COMMON_MSG_TYPE, UNIX_TIME
+from fuzzConstants import ENDPOINT_STRING, CHUNK_TYPE, COMMON_MSG_TYPE, UNIX_TIME, SEC_CH_ID_PRIM_NAME, SEC_TOKEN_ID_PRIM_NAME, SEC_SEQ_NUM_PRIM_NAME, SEC_REQ_ID_PRIM_NAME, ID_GUID_NAME
 
 from fuzzConstants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
 
 from fuzzConstants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
 
-from fuzzConstants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID, SEC_CH_ID_PRIM_NAME, SEC_TOKEN_ID_PRIM_NAME, SEC_SEQ_NUM_PRIM_NAME, SEC_REQ_ID_PRIM_NAME
+from fuzzConstants import CLOSE_MSG_NAME, CLOSE_MSG_TYPE, CLOSE_MSG_HEADER_NAME, CLOSE_MSG_BODY_NAME, CLOSE_MSG_TYPE_ID
 
 from fuzzConstants import GET_ENDPOINTS_MSG_NAME, GET_ENDPOINTS_MSG_HEADER_NAME, GET_ENDPOINTS_MSG_BODY_NAME, GET_ENDPOINTS_MSG_TYPE_ID
 
@@ -365,17 +365,18 @@ def activate_session_msg():
         s_size(ACTIVATE_SESSION_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
     with s_block(ACTIVATE_SESSION_MSG_BODY_NAME):
-        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from open callback
-        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from open callback
-        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from open callback
-        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from create callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from create callback
         # type id  b'\x01\x00\xd3\x01 > d301 > 01d3 > 467
         s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_TYPE_ID), name='Type id', fuzzable=False)
         # request header
         s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
         s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)
-        # 16B -> a6 b5 e0 ea 33 7f be 45 6a 36 e3 5e 91 59 b5 9b 
-        s_bytes(b'\xa6\xb5\xe0\xea\x33\x7f\xbe\x45\x6a\x36\xe3\x5e\x91\x59\xb5\x9b', name='Identifier guid', fuzzable=False) # TODO maybe this is the session not found
+        
+        s_bytes(b'\xa6\xb5\xe0\xea\x33\x7f\xbe\x45\x6a\x36\xe3\x5e\x91\x59\xb5\x9b', name=ID_GUID_NAME, fuzzable=False) #from create callback
+
         s_qword(opcua_time(), name='timestamp')#, fuzzable=False)
         s_dword(1, name='Request handle', fuzzable=False)
         s_dword(0, name='Return diagnostics', fuzzable=False)
@@ -421,6 +422,7 @@ def activate_session_msg():
         s_bytes(b'\xFF\xFF\xFF\xFF', name='User token sign algorithm', fuzzable=False) # malformed if negative value
         s_bytes(b'\xFF\xFF\xFF\xFF', name='User token signature', fuzzable=False)
 
+# TODO re-copy this
 def activate_session_msg_nf():
     s_initialize(ACTIVATE_SESSION_MSG_NAME)
 
@@ -466,6 +468,7 @@ def activate_session_msg_nf():
 
 
 # -----------------------BROWSE/READ MSG---------------------
+# TODO implement read msg
 def read_msg():
     s_initialize(READ_MSG_NAME)
 
