@@ -102,7 +102,9 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             # first 4B of SessID are reversed A B C D -> D C B A
             # following two couples of 2B are reversed AB CD -> BA DC
             # last 8B are the same as on wire
-        #sessId_IdGuid = struct.unpack('16c', res[55:71])
+        sessId_IdGuid_string = struct.unpack('16c', res[55:71])
+        for i in sessId_IdGuid_string:
+            print_dbg(i)
         # TODO make this one raw
         sessId_IdGuid_first = struct.unpack('4c', res[55:59])
         sessId_IdGuid_first = sessId_IdGuid_first[3].hex() + sessId_IdGuid_first[2].hex() + sessId_IdGuid_first[1].hex() + sessId_IdGuid_first[0].hex()
