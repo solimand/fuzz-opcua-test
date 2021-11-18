@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from ctypes import sizeof
-from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, OPC_UA_PORT, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
+from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
 
@@ -153,12 +153,14 @@ def main():
     # ARGS parsing----------
     parser = ArgumentParser(description='Fuzzing OPC UA server.')
     parser.add_argument('addr', metavar='ip-addr', type=str, help='The server host IP address')
+    parser.add_argument('port', metavar='port', type=int, help='The server host port', default=4840, nargs='?')
     args = parser.parse_args()
 
     # IP ADDR validiation----------
     try:
         HOST_ADDR = ip_address(args.addr)
-        print_dbg('%s is starting fuzzing the OPC UA server at %s IPv%s address.' % (parser.prog, HOST_ADDR, HOST_ADDR.version))
+        OPC_UA_PORT = args.port
+        print_dbg('%s is starting fuzzing the OPC UA server at %s IPv%s address on port %s' % (parser.prog, HOST_ADDR, HOST_ADDR.version, OPC_UA_PORT))
     except ValueError:
         print('address/netmask is invalid: %s' % args.addr)
         print('Usage : %s ipAddress' % parser.prog)

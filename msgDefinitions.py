@@ -464,7 +464,6 @@ def activate_session_msg_nf():
 
 
 # -----------------------BROWSE/READ MSG---------------------
-# TODO implement read msg
 def read_msg():
     s_initialize(READ_MSG_NAME)
 
@@ -474,13 +473,26 @@ def read_msg():
         s_size(READ_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
     with s_block(READ_MSG_BODY_NAME):
-        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from open callback
-        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from open callback
-        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from open callback
-        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from open callback
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from  create callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from create callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from create callback
         # type id  b'\x01\x00\x77\x02 > 7702 > 0277 > 631
         s_bytes(b'\x01\x00' + struct.pack('<H', READ_MSG_TYPE_ID), name='Type id', fuzzable=False)
-
+        #req header
+        s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
+        s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)        
+        s_bytes(b'\xa6\xb5\xe0\xea\x33\x7f\xbe\x45\x6a\x36\xe3\x5e\x91\x59\xb5\x9b', name=ID_GUID_NAME, fuzzable=False) #from create callback
+        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_dword(1, name='Request handle', fuzzable=False)
+        s_dword(0, name='Return diagnostics', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False) # malformed if negative value
+        s_dword(10000, name='Timeout hint', fuzzable=False)
+        s_bytes(b'\x00\x00\x00', name='Additional header', fuzzable=False)
+        s_qword(0, name='Max age')
+        s_bytes(b'\x03\x00\x00\x00', name='Timestamps to return')
+        #Nodes to read - Array of ReadValueId
+        # TODO find what i want to read
 
 # 37 Services:
 #   Discovery: FindServers - FindServersOnNetwork - GetEndpoints - RegisterServer(called from server, not interesting) - 
