@@ -1,6 +1,6 @@
 # connection and commons
-OPC_UA_PORT = 4840
-ENDPOINT_STRING = 'opc.tcp://localhost:4840/'.encode('utf-8')
+OPC_UA_PORT = 4840 # TODO make it an arg
+ENDPOINT_STRING = 'opc.tcp://localhost:4840/'.encode('utf-8') #TODO form this string based on the args
 CHUNK_TYPE = b'F'
 UNIX_TIME = 116444736000000000  # January 1, 1970
 COMMON_MSG_TYPE = b'MSG'
