@@ -483,16 +483,37 @@ def read_objects_msg():
         s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False) # bad decoding error if fuzzed
         s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)        
         s_bytes(b'\xa6\xb5\xe0\xea\x33\x7f\xbe\x45\x6a\x36\xe3\x5e\x91\x59\xb5\x9b', name=ID_GUID_NAME, fuzzable=False) #from create callback
-        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_qword(opcua_time(), name='timestamp')
         s_dword(1, name='Request handle', fuzzable=False)
         s_dword(0, name='Return diagnostics', fuzzable=False)
         s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False) # malformed if negative value
         s_dword(10000, name='Timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='Additional header', fuzzable=False)
-        s_qword(0, name='Max age')
-        s_bytes(b'\x03\x00\x00\x00', name='Timestamps to return')
+        s_qword(0, name='Max age', fuzzable=False)
+        s_bytes(b'\x03\x00\x00\x00', name='Timestamps to return', fuzzable=False)
         #Nodes to read - Array of ReadValueId
+        s_dword(11, name='Array size', fuzzable=False) # Number of objects to read - 11 for ObjNode
+            # ReadVal 16B = NodeID 2B + AttributeID 4B + IndexRange 4B + DataEncoding 6B
+        for x in range(1,11):
+            s_bytes(b'\x00\x55', name='Node ID readVal '+str(x), fuzzable=False) # NodeID of ObjectsNode = 85
+            if (1 <= x <= 7):
+                s_dword(x, name='AttributeID readval '+str(x), fuzzable=False)
+            elif (x==8):    # Role Permission 18
+                s_dword(24, name='AttributeID readval '+str(x), fuzzable=False)
+            elif (x==9):    # User Role Permission	19
+                s_dword(25, name='AttributeID readval '+str(x), fuzzable=False)
+            elif (x==10):   # Access Restriction 1a
+                s_dword(26, name='AttributeID readval '+str(x), fuzzable=False)
+            elif (x==11):   # Event Notifier 0c
+                s_dword(12, name='AttributeID readval '+str(x), fuzzable=False)
+            s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range readval '+str(x), fuzzable=False)
+            s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval '+str(x), fuzzable=False)
+
+
         
+
+
+
 
 # 37 Services:
 #   Discovery: FindServers - FindServersOnNetwork - GetEndpoints - RegisterServer(called from server, not interesting) - 

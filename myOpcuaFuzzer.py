@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from ctypes import sizeof
-from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
+from fuzzConstants import HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
 
@@ -11,9 +11,11 @@ from fuzzConstants import CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_NAME,
 
 from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_NAME, ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD, ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD
 
+from fuzzConstants import READ_MSG_NAME, READ_MSG_BODY_NAME, READ_MSG_SEC_CH_ID_NODE_FIELD, READ_MSG_TOKEN_ID_NODE_FIELD, READ_MSG_SEQ_NUM_NODE_FIELD, READ_MSG_SEQ_REQ_ID_NODE_FIELD
+
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
-from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg
+from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg, activate_session_msg_nf, read_objects_msg
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
@@ -104,7 +106,6 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
         #sessId_plain = res[55:71] # I don't know if in future I will need the sessionID 
         #print_dbg('sessid plain ' + str(sessId_plain))
         authId_plain = res[74:90]
-
         if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
             print_dbg('activate sess version')
             node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
@@ -113,6 +114,12 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
             print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
+        elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):
+            print_dbg('read req version')
+            node.names[READ_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[READ_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[READ_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[READ_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
         else:
             fuzz_data_logger.log_error('ERR - callback not implementated for msg')
             print('ERR on msg body %s', node.stack[1]._name)
@@ -188,8 +195,11 @@ def main():
     create_session_msg_nf()
     #create_session_msg()
     
-    #activate_session_msg_nf()
-    activate_session_msg()
+    activate_session_msg_nf()
+    #activate_session_msg()
+
+    #read_objects_msg_nf()
+    read_objects_msg()
 
     # SESSION building----------
     session = Session(
@@ -217,6 +227,8 @@ def main():
     session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
     session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)
     #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
+
+    session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(READ_MSG_NAME), callback=create_callback)
 
 
     # TODO procmon and netmon

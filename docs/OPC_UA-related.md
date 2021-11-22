@@ -242,17 +242,21 @@ The default NodeIDs of every AddressSpace
 
 ## Default attributes for main NodeIDs
 - 11 Attributes:
-    1. NodeId
-    1. NodeClass
-    1. Browse Name
-    1. Display Name
-    1. Description
-    1. Write Mask
-    1. User Write Mask
-    1. Role Permission 
-    1. User Role Permission
-    1. Access Restriction
-    1. Event Notifier
+
+| Attribute Name |    IntegerValue    |
+|-:|:-:|
+|NodeId|1|
+|NodeClass|2|
+|Browse Name|3|
+|Display Name|4|
+|Description|5|
+|Write Mask|6|
+|User Write Mask|7|
+|Role Permission|18|
+|User Role Permission|19|
+|Access Restriction |1a|
+|Event Notifier|0c|
+
 
 # Communication Protocol
 ## Client initiated comm protocol
