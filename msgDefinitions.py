@@ -464,7 +464,7 @@ def activate_session_msg_nf():
 
 
 # -----------------------BROWSE/READ MSG---------------------
-def read_msg():
+def read_objects_msg():
     s_initialize(READ_MSG_NAME)
 
     with s_block(READ_MSG_HEADER_NAME):
@@ -492,7 +492,7 @@ def read_msg():
         s_qword(0, name='Max age')
         s_bytes(b'\x03\x00\x00\x00', name='Timestamps to return')
         #Nodes to read - Array of ReadValueId
-        # TODO find what i want to read
+        
 
 # 37 Services:
 #   Discovery: FindServers - FindServersOnNetwork - GetEndpoints - RegisterServer(called from server, not interesting) - 

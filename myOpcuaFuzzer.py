@@ -21,7 +21,7 @@ import struct
 from argparse import ArgumentParser
 from ipaddress import ip_address
 
-#DBG
+# 4 DBG
 from pprint import pprint #print obj attributes -> pprint(vars(obj))
 
 
@@ -79,7 +79,7 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
             print('ERR on msg body %s', node.stack[1]._name)
 open_callback.__doc__ = "Callback setting parameters of secure channel"
 
-# TODO update with AuthToken-IdentifierID
+
 def create_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
     if not res:
@@ -118,6 +118,8 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             print('ERR on msg body %s', node.stack[1]._name)
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response') 
+create_callback.__doc__ = "Callback to set the Auth token ID from Create Session Msg"
+
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
@@ -129,6 +131,7 @@ def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
     if (msg_type == ACK_MSG_TYPE):
         print_dbg("ACK received!")
 hello_callback.__doc__ = "Callback to check the ACK"
+
 
 def generic_callback(target, fuzz_data_logger, session, node=None, *_, **__):
     res = session.last_recv
@@ -203,29 +206,6 @@ def main():
         #index_end=293)
         
     # GRAPH building----------
-    ''' OPC client initiatied comm protocol
-        C                                       S
-                            HEL-->
-                            <--ACK
-
-                    OPEN Req (sec ch)-->
-                    <--OPEN Res (sec ch)
-
-                    CREATE Req (sess)-->
-                    <--CREATE Res (sess)
-
-                    ACTIVATE Req (sess)-->
-                    <--ACTIVATE Res (sess)
-
-                    READ Req-->
-                    <--READ res
-
-                    CLOSE Sess Req-->
-                    <--CLOSE Sess Res
-
-                    CLOSE Sec Ch Req-->
-                    <--CLOSE Sec ch Res
-    '''
     session.connect(s_get(HELLO_MSG_NAME))
 
     session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)

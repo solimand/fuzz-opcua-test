@@ -215,3 +215,69 @@
 - BadInternalError -> occurs when (...); error code (...)
 
 - BadSecureChannelIdInvalid -> occurs when (...); error code (...)
+
+# Address Space Defaults
+## Browse the AddressSpace
+The default NodeIDs of every AddressSpace
+- ns=0, i =84 --> Root Node
+- ns=0, i =85 --> Objects
+- ns=0, i =86 --> Types 
+- ns=0, i =87 --> Views
+
+## Some default NodeIDs
+- i = 33 --> The abstract base type for all hierarchical references
+- i = 2256 --> The current status of the server
+- i = 2257 --> Start time
+- i = 2258 --> Current time
+- i = 2259 --> State server
+- i = 2260 --> Build info
+- i = 2262 --> Product uri
+- i = 2263 --> Manufacturer name
+- i = 2261 --> Product name
+- i = 2264 --> Software version
+- i = 2265 --> Build number
+- i = 2266 --> Build date
+- i = 2992 --> Seconds till shutdown
+- i = 2993 --> Shutdown reason
+
+## Default attributes for main NodeIDs
+- 11 Attributes:
+    1. NodeId
+    1. NodeClass
+    1. Browse Name
+    1. Display Name
+    1. Description
+    1. Write Mask
+    1. User Write Mask
+    1. Role Permission 
+    1. User Role Permission
+    1. Access Restriction
+    1. Event Notifier
+
+# Communication Protocol
+## Client initiated comm protocol
+OPC client initiatied comm protocol
+
+```
+Client                      Server
+                HEL-->
+                <--ACK
+
+        OPEN Req (sec ch)-->
+        <--OPEN Res (sec ch)
+
+        CREATE Req (sess)-->
+        <--CREATE Res (sess)
+
+        ACTIVATE Req (sess)-->
+        <--ACTIVATE Res (sess)
+
+        READ Req-->
+        <--READ res
+
+        CLOSE Sess Req-->
+        <--CLOSE Sess Res
+
+        CLOSE Sec Ch Req-->
+        <--CLOSE Sec ch Res
+```

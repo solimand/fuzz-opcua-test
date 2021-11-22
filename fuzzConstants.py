@@ -6,6 +6,7 @@ COMMON_MSG_TYPE = b'MSG'
 PNG_GRAPH_OUT_FILE = './myopcuaTest.png'
 ACK_MSG_TYPE = b'ACK'
 ERR_MSG_TYPE = b'ERR'
+OBJ_NODE_ID = 85
 
 #callbacks related
 SEC_CH_ID_PRIM_NAME = 'secure channel id'
