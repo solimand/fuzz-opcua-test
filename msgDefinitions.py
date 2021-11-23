@@ -505,7 +505,9 @@ def read_objects_msg():
             elif (x==10):   # Access Restriction 1a
                 s_dword(26, name='AttributeID readval '+str(x), fuzzable=False)
             elif (x==11):   # Event Notifier 0c
-                s_dword(12, name='AttributeID readval '+str(x), fuzzable=False)
+                s_dword(2259, name='AttributeID readval '+str(x), fuzzable=False)
+            '''elif (x==11):   # Event Notifier 0c
+                s_dword(12, name='AttributeID readval '+str(x), fuzzable=False)'''
             s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range readval '+str(x), fuzzable=False)
             s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval '+str(x), fuzzable=False)
 

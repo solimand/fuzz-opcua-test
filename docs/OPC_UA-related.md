@@ -224,7 +224,7 @@ The default NodeIDs of every AddressSpace
 - ns=0, i =86 --> Types 
 - ns=0, i =87 --> Views
 
-## Some default NodeIDs
+## Some default AttributeIDs (TODO check these values) 
 - i = 33 --> The abstract base type for all hierarchical references
 - i = 2256 --> The current status of the server
 - i = 2257 --> Start time

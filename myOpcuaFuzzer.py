@@ -26,6 +26,8 @@ from ipaddress import ip_address
 # 4 DBG
 from pprint import pprint #print obj attributes -> pprint(vars(obj))
 
+# global vars that must survive to callback execs
+auth_token_read_req = ''
 
 # -----------------------CallBacks------------------
 #TODO callback for endpoint url
@@ -114,13 +116,18 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
             print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
+            # save this value for activate_session_response callback
+            global auth_token_read_req
+            auth_token_read_req = authId_plain
         elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):
             print_dbg('read req version')
+            # the msg activate_session_response (occurring before read_request in the fuzzing chain)
+            #   has the same security params but no auth token id
             node.names[READ_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
             node.names[READ_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
             node.names[READ_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[READ_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
-            node.names[READ_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
+            node.names[READ_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
         else:
             fuzz_data_logger.log_error('ERR - callback not implementated for msg')
             print('ERR on msg body %s', node.stack[1]._name)
