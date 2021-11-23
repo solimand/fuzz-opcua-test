@@ -11,7 +11,7 @@ from fuzzConstants import CREATE_SESSION_MSG_BODY_NAME, CREATE_SESSION_MSG_NAME,
 
 from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_NAME, ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD, ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD, ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD
 
-from fuzzConstants import READ_MSG_NAME, READ_MSG_BODY_NAME, READ_MSG_SEC_CH_ID_NODE_FIELD, READ_MSG_TOKEN_ID_NODE_FIELD, READ_MSG_SEQ_NUM_NODE_FIELD, READ_MSG_SEQ_REQ_ID_NODE_FIELD
+from fuzzConstants import READ_MSG_NAME, READ_MSG_BODY_NAME, READ_MSG_SEC_CH_ID_NODE_FIELD, READ_MSG_TOKEN_ID_NODE_FIELD, READ_MSG_SEQ_NUM_NODE_FIELD, READ_MSG_SEQ_REQ_ID_NODE_FIELD, READ_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get
 
@@ -120,6 +120,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[READ_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
             node.names[READ_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[READ_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            node.names[READ_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
         else:
             fuzz_data_logger.log_error('ERR - callback not implementated for msg')
             print('ERR on msg body %s', node.stack[1]._name)

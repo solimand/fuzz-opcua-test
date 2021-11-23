@@ -494,7 +494,7 @@ def read_objects_msg():
         #Nodes to read - Array of ReadValueId
         s_dword(11, name='Array size', fuzzable=False) # Number of objects to read - 11 for ObjNode
             # ReadVal 16B = NodeID 2B + AttributeID 4B + IndexRange 4B + DataEncoding 6B
-        for x in range(1,11):
+        for x in range(1,12):
             s_bytes(b'\x00\x55', name='Node ID readVal '+str(x), fuzzable=False) # NodeID of ObjectsNode = 85
             if (1 <= x <= 7):
                 s_dword(x, name='AttributeID readval '+str(x), fuzzable=False)
