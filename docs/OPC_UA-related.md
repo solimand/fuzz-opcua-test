@@ -1,5 +1,4 @@
 # Message Formats from Wireshark tcpdump
-
 ## OPEN-SECURE-CHANNEL-OPN-Req
     Message Type: OPN
     Chunk Type: F
@@ -51,7 +50,7 @@
             ClientNonce: 00                                                     --->??
             RequestedLifetime: 300000                                           --->??
 
-# CLOSE-MSG-Req
+## CLOSE-MSG-Req
     Message Type: CLO
     Chunk Type: F
     Message Size: 57
@@ -95,7 +94,7 @@
                         .... ...0 = has binary body: False
                         .... ..0. = has xml body: False
 
-# GET-ENDPOINTS-MSG-Req
+## GET-ENDPOINTS-MSG-Req
     Message Type: MSG
     Chunk Type: F
     Message Size: 100
@@ -144,7 +143,7 @@
             ProfileUris: Array of String
                 ArraySize: 0
 
-# Activate-Session-Msg-Req
+## Activate-Session-Msg-Req
     Message Type: MSG
     Chunk Type: F
     Message Size: 146
@@ -204,17 +203,16 @@
                 Signature: <MISSING>[OpcUa Null ByteString]
 
 
-# Create Session Service Parameters
+# Create Session Req/Res
+## Service Parameters
 | Name |       Type       |    Description    | 
 |:------:|:------------------:|:-----------------:|
 | clientNonce      | ByteString           |   A random number that should never be used in any other request. This number shall have a minimum length of **32 bytes**. Profiles may increase the required length. The Server shall use this value to prove possession of its Application Instance Certificate in the response. |
 
-# Errors & Error Codes
-- BadDecodingError -> occurs when (...); error code (...)
-
-- BadInternalError -> occurs when (...); error code (...)
-
-- BadSecureChannelIdInvalid -> occurs when (...); error code (...)
+## Create Session Res Msg
+Has two identifier IDs:
+- Session ID = printed by server in output 
+- Auth token ID = used inside the next Activate Session Request
 
 # Read Request MSG
 ## Browse the AddressSpace default nodes (all servers have)
@@ -230,7 +228,6 @@ The field ReadValID has following sub-fields:
 - AttributeID (4B)
 - Index Range (4B)
 - DataEncoding (6B)
-
 
 ## Default AttributeIDs Constants
 | Attribute Name |    Identifier    |
@@ -268,7 +265,7 @@ The field ReadValID has following sub-fields:
 |AccessLevelEx|27
 
 
-# Communication Protocol
+# C/S Communication Protocol
 ## Client initiated comm protocol
 OPC client initiatied comm protocol
 
@@ -295,3 +292,8 @@ Client                      Server
         CLOSE Sec Ch Req-->
         <--CLOSE Sec ch Res
 ```
+
+# DEfault Errors & Error Codes (TODO)
+- BadDecodingError -> occurs when (...); error code (...)
+- BadInternalError -> occurs when (...); error code (...)
+- BadSecureChannelIdInvalid -> occurs when (...); error code (...)

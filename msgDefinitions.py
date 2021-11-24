@@ -1,6 +1,6 @@
 from fuzzConstants import ENDPOINT_STRING, CHUNK_TYPE, COMMON_MSG_TYPE, UNIX_TIME, SEC_CH_ID_PRIM_NAME, SEC_TOKEN_ID_PRIM_NAME, SEC_SEQ_NUM_PRIM_NAME, SEC_REQ_ID_PRIM_NAME, ID_GUID_NAME
 
-from fuzzConstants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME
+from fuzzConstants import HELLO_MSG_NAME, HELLO_MSG_TYPE, HELLO_MSG_HEADER_NAME, HELLO_MSG_BODY_NAME, OBJ_NODE_ID_BYTE
 
 from fuzzConstants import OPEN_MSG_NAME, OPEN_MSG_TYPE, OPEN_MSG_HEADER_NAME, OPEN_MSG_BODY_NAME, OPEN_MSG_SEC_POLICY_NONE
 
@@ -464,7 +464,7 @@ def activate_session_msg_nf():
 
 
 # -----------------------BROWSE/READ MSG---------------------
-def read_objects_msg():
+def read_objects_msg(serverStatus=False):
     s_initialize(READ_MSG_NAME)
 
     with s_block(READ_MSG_HEADER_NAME):
@@ -492,29 +492,31 @@ def read_objects_msg():
         s_qword(0, name='Max age', fuzzable=False)
         s_bytes(b'\x03\x00\x00\x00', name='Timestamps to return', fuzzable=False)
         #Nodes to read - Array of ReadValueId
-        '''s_dword(11, name='Array size', fuzzable=False) # Number of objects to read - 11 for ObjNode
-            # ReadVal 16B = NodeID 2B + AttributeID 4B + IndexRange 4B + DataEncoding 6B
-        for x in range(1,12):
-            s_bytes(b'\x00\x55', name='Node ID readVal '+str(x), fuzzable=False) # NodeID of ObjectsNode = 85
-            if (1 <= x <= 7):
-                s_dword(x, name='AttributeID readval '+str(x), fuzzable=False)
-            elif (x==8):    # Role Permission 18
-                s_dword(24, name='AttributeID readval '+str(x), fuzzable=False)
-            elif (x==9):    # User Role Permission	19
-                s_dword(25, name='AttributeID readval '+str(x), fuzzable=False)
-            elif (x==10):   # Access Restriction 1a
-                s_dword(26, name='AttributeID readval '+str(x), fuzzable=False)
-            elif (x==11):   # Event Notifier 0c
-                s_dword(12, name='AttributeID readval '+str(x), fuzzable=False)
-            s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range readval '+str(x), fuzzable=False)
-            s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval '+str(x), fuzzable=False)'''
-        # Read server status: NodeID 2259, AttributeID 13
-        s_dword(1, name='Array size', fuzzable=False)
-        s_bytes(b'\xd3\x08', name='Node ID readVal ', fuzzable=False)
-        s_dword(13, name='AttributeID readval ', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range readval ', fuzzable=False)
-        s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval ', fuzzable=False)
-        
+        if (serverStatus==True):
+            # Read server status: NodeID 2259, AttributeID 13
+            s_dword(1, name='Array size', fuzzable=False)
+            s_bytes(b'\x01\x00\xd3\x08', name='Node ID readVal ', fuzzable=False)
+            s_dword(13, name='AttributeID readval ', fuzzable=False)
+            s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range readval ', fuzzable=False)
+            s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval ', fuzzable=False)
+        else:
+            s_dword(11, name='Array size', fuzzable=False) # Number of objects to read - 11 for ObjNode
+                # ReadVal 16B = NodeID 2B + AttributeID 4B + IndexRange 4B + DataEncoding 6B
+            for x in range(1,12):
+                s_bytes(OBJ_NODE_ID_BYTE, name='Node ID readVal '+str(x), fuzzable=False) # NodeID of ObjectsNode = 85 (0055)
+                if (1 <= x <= 7):
+                    s_dword(x, name='AttributeID readval '+str(x), fuzzable=False)
+                elif (x==8):    # Role Permission 18
+                    s_dword(24, name='AttributeID readval '+str(x), fuzzable=False)
+                elif (x==9):    # User Role Permission	19
+                    s_dword(25, name='AttributeID readval '+str(x), fuzzable=False)
+                elif (x==10):   # Access Restriction 1a
+                    s_dword(26, name='AttributeID readval '+str(x), fuzzable=False)
+                elif (x==11):   # Event Notifier 0c
+                    s_dword(12, name='AttributeID readval '+str(x), fuzzable=False)
+                s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range readval '+str(x), fuzzable=False)
+                s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval '+str(x), fuzzable=False)
+read_objects_msg.__doc__ = "Used to read Objects main attribute ids or the server status"
 
 
 
