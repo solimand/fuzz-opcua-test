@@ -216,34 +216,24 @@
 
 - BadSecureChannelIdInvalid -> occurs when (...); error code (...)
 
-# Address Space Defaults
-## Browse the AddressSpace
+# Read Request MSG
+## Browse the AddressSpace default nodes (all servers have)
 The default NodeIDs of every AddressSpace
 - ns=0, i =84 --> Root Node
 - ns=0, i =85 --> Objects
 - ns=0, i =86 --> Types 
 - ns=0, i =87 --> Views
 
-## Some default AttributeIDs (TODO check these values) 
-- i = 33 --> The abstract base type for all hierarchical references
-- i = 2256 --> The current status of the server
-- i = 2257 --> Start time
-- i = 2258 --> Current time
-- i = 2259 --> State server
-- i = 2260 --> Build info
-- i = 2262 --> Product uri
-- i = 2263 --> Manufacturer name
-- i = 2261 --> Product name
-- i = 2264 --> Software version
-- i = 2265 --> Build number
-- i = 2266 --> Build date
-- i = 2992 --> Seconds till shutdown
-- i = 2993 --> Shutdown reason
+## Read Val ID in read Req MSG
+The field ReadValID has following sub-fields:
+- NodeID (xB) identifies the kind of NodeID (two bytes integer 0000, four bytes integer 0001, string 0011 ...) and the value of NodeID (2B, 4B, len(str))
+- AttributeID (4B)
+- Index Range (4B)
+- DataEncoding (6B)
 
-## Default attributes for main NodeIDs
-- 11 Attributes:
 
-| Attribute Name |    IntegerValue    |
+## Default AttributeIDs Constants
+| Attribute Name |    Identifier    |
 |-:|:-:|
 |NodeId|1|
 |NodeClass|2|
@@ -254,8 +244,28 @@ The default NodeIDs of every AddressSpace
 |User Write Mask|7|
 |Role Permission|18|
 |User Role Permission|19|
-|Access Restriction |1a|
-|Event Notifier|0c|
+|Access Restriction |26(1a)|
+|Event Notifier|12(0c)|
+| | |
+| | |
+|IsAbstract|8|
+|Symmetric|9|
+|InverseName|10|
+|ContainsNoLoops|11|
+|Value|13|
+|DataType|14|
+|ValueRank|15|
+|ArrayDimensions|16|
+|AccessLevel|17|
+|UserAccessLevel|18|
+|MinimumSamplingInterval|19|
+|Historizing|20|
+|Executable|21|
+|UserExecutable|22|
+|DataTypeDefinition|23|
+|RolePermissions|24|
+|UserRolePermissions|25|
+|AccessLevelEx|27
 
 
 # Communication Protocol
