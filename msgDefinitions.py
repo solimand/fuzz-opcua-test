@@ -497,10 +497,10 @@ def read_objects_msg(serverStatus=False):
         if (serverStatus==True):
             # Read server status: NodeID 2259, AttributeID 13
             s_dword(1, name='Array size', fuzzable=False)
-            s_bytes(b'\x01\x00\xd3\x08', name='Node ID readVal ', fuzzable=False)
-            s_dword(13, name='AttributeID readval ', fuzzable=False)
-            s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range readval ', fuzzable=False)
-            s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval ', fuzzable=False)
+            s_bytes(b'\x01\x00\xd3\x08', name='Node ID', fuzzable=False)
+            s_dword(13, name='AttributeID', fuzzable=False)
+            s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range', fuzzable=False)
+            s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding', fuzzable=False)
         else:
             s_dword(11, name='Array size', fuzzable=False) # Number of objects to read - 11 for ObjNode
                 # ReadVal 16B = NodeID 2B + AttributeID 4B + IndexRange 4B + DataEncoding 6B
@@ -551,8 +551,14 @@ def browse_objects_msg():
         s_dword(0, name='ViewDescription version', fuzzable=False)
         s_dword(100, name='RequestedMaxReferencesPerNode', fuzzable=False)
         # Node to browse
-
-
+        s_dword(1, name='Array size', fuzzable=False)
+        # Browse Descr (17B in case of object node) = NodeID (1B+1B) + BrowseDirection (4B) + RefTypeID (2B) + IncludeSubType (1B) + NodeClassMask (4B) + ResultMask (4B)
+        s_bytes(b'\x00\x55', name='BrowseDescription NodeID', fuzzable=False) # 55h = 85d
+        s_bytes(b'\x00\x00\x00\x00', name='BrowseDescription direction forward', fuzzable=False)
+        s_bytes(b'\x00\x1f', name='BrowseDescription ReferenceType NodeID', fuzzable=False) # 1fh=31d
+        s_bytes(b'\x01', name='BrowseDescription Include SubType true', fuzzable=False)
+        s_bytes(b'\x00\x00\x00\x00', name='BrowseDescription NodeClassMask', fuzzable=False)
+        s_bytes(b'\x3f\x00\x00\x00', name='BrowseDescription ResultMask All', fuzzable=False)
 browse_objects_msg.__doc__ = "Find the references of the Object Node"
 
 # 37 Services:
