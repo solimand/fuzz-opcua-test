@@ -19,8 +19,10 @@ Leverage callback methods to handle situations such as challenge response system
 * ```dst (str or Request (pgrah.Node), optional)``` – Destination request name or re-
 quest node
 * ```callback (def , optional)``` – Callback function to pass received data to between node xmits. Default None. 
+
 ### Returns 
 The edge between the src and dst.
+
 ### Return type
 pgraph.Edge
 
@@ -38,3 +40,6 @@ ProtocolSession session_variables values are generally set within a callback and
 referenced in elements via default values of type ProtocolSessionReference.
 * ```args``` – Implementations should include *args and **kwargs for forward-compatibility.
 * ```kwargs``` – Implementations should include *args and **kwargs for forward-compatibility.
+
+## Process Monitor
+It can be used to start, monitor, and restart target programs. It uses [pydbg](https://pypi.org/project/pydbg/) to get information about crashed programs.

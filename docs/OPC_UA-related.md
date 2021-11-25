@@ -231,6 +231,7 @@ The field ReadValID has following sub-fields:
 - DataEncoding (6B)
 
 ## Default AttributeIDs Constants
+Every node in an OPC UA information model contains attributes depending on the node type. Possible attributes are as follows:
 | Attribute Name |    Identifier    |
 |-:|:-:|
 |NodeId|1|

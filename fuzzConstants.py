@@ -7,6 +7,7 @@ PNG_GRAPH_OUT_FILE = './myopcuaTest.png'
 ACK_MSG_TYPE = b'ACK'
 ERR_MSG_TYPE = b'ERR'
 OBJ_NODE_ID_BYTE = b'\x00\x55'
+PROC_MON_PORT = 26002
 
 #callbacks related
 SEC_CH_ID_PRIM_NAME = 'secure channel id'

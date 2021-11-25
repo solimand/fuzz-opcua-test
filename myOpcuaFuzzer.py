@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from ctypes import sizeof
-from fuzzConstants import HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE
+from fuzzConstants import HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE, PROC_MON_PORT
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
 
@@ -15,7 +15,7 @@ from fuzzConstants import READ_MSG_NAME, READ_MSG_BODY_NAME, READ_MSG_SEC_CH_ID_
 
 from fuzzConstants import BROWSE_MSG_NAME, BROWSE_MSG_BODY_NAME, BROWSE_MSG_SEC_CH_ID_NODE_FIELD, BROWSE_MSG_TOKEN_ID_NODE_FIELD, BROWSE_MSG_SEQ_NUM_NODE_FIELD, BROWSE_MSG_SEQ_REQ_ID_NODE_FIELD, BROWSE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD
 
-from boofuzz import Session, Target, TCPSocketConnection, s_get
+from boofuzz import Session, Target, TCPSocketConnection, s_get, ProcessMonitor
 
 from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg, activate_session_msg_nf, read_objects_msg, browse_objects_msg
 
@@ -124,7 +124,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
         elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):
             print_dbg('read req version')
             # the msg activate_session_response (occurring before read_request in the fuzzing chain)
-            #   has the same security params but no auth token id
+            #   has the same security params of create_res but no auth token id
             node.names[READ_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
             node.names[READ_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
             node.names[READ_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
@@ -133,7 +133,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
         elif ((node.stack[1]._name == BROWSE_MSG_BODY_NAME)):
             print_dbg('browse req version')
             # the msg activate_session_response (occurring before browse_request in the fuzzing chain)
-            #   has the same security params but no auth token id
+            #   has the same security params of create_res but no auth token id
             node.names[BROWSE_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
             node.names[BROWSE_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
             node.names[BROWSE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
@@ -198,6 +198,12 @@ def main():
         print('Usage : %s ipAddress' % args.addr)
         return
 
+    # Monitors
+    procmon = ProcessMonitor('127.0.0.1', PROC_MON_PORT)
+    startcmd = ['python3', '/home/mik/workspaces/fuzz-opcua-test/myOpcuaFuzzer.py 127.0.0.1']
+
+    #procmon.set_options(start_commands=[], capture_output=True)
+
     # MSGs building----------
     hello_msg_nf()
     #hello_msg()
@@ -231,7 +237,7 @@ def main():
         #post_test_case_callbacks=[generic_callback], #executed at the end of the chain
         sleep_time=0, #sleep at the end of the graph
         receive_data_after_fuzz=True, #receive last response if there is
-        keep_web_open=False, #close web UI at the end of the graph
+        keep_web_open=True, #close web UI at the end of the graph
         #web_port=None,
         index_start=1,
         index_end=1)
