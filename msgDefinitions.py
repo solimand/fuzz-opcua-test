@@ -14,6 +14,8 @@ from fuzzConstants import ACTIVATE_SESSION_MSG_NAME, ACTIVATE_SESSION_MSG_BODY_N
 
 from fuzzConstants import READ_MSG_NAME, READ_MSG_HEADER_NAME, READ_MSG_BODY_NAME, READ_MSG_TYPE_ID
 
+from fuzzConstants import BROWSE_MSG_NAME, BROWSE_MSG_HEADER_NAME, BROWSE_MSG_BODY_NAME, BROWSE_MSG_TYPE_ID
+
 from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_size, s_qword
 
 # Dates
@@ -468,7 +470,7 @@ def read_objects_msg(serverStatus=False):
     s_initialize(READ_MSG_NAME)
 
     with s_block(READ_MSG_HEADER_NAME):
-        s_bytes(COMMON_MSG_TYPE, name='Activate session', fuzzable=False)
+        s_bytes(COMMON_MSG_TYPE, name='Read request', fuzzable=False)
         s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
         s_size(READ_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
 
@@ -518,8 +520,40 @@ def read_objects_msg(serverStatus=False):
                 s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval '+str(x), fuzzable=False)
 read_objects_msg.__doc__ = "Used to read Objects main attribute ids or the server status"
 
+def browse_objects_msg():
+    s_initialize(BROWSE_MSG_NAME)
+
+    with s_block(BROWSE_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Browse Request', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(BROWSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(BROWSE_MSG_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from  create callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from create callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        # type id  b'\x01\x00\x0f\x02 > 0f02 > 020f > 527
+        s_bytes(b'\x01\x00' + struct.pack('<H', BROWSE_MSG_TYPE_ID), name='Type id', fuzzable=False)
+        #req header
+        s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False)
+        s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)        
+        s_bytes(b'\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff', name=ID_GUID_NAME, fuzzable=False) #from create callback
+        s_qword(opcua_time(), name='timestamp')
+        s_dword(1, name='Request handle', fuzzable=False)
+        s_dword(0, name='Return diagnostics', fuzzable=False)
+        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False)
+        s_dword(10000, name='Timeout hint', fuzzable=False)
+        s_bytes(b'\x00\x00\x00', name='Additional header', fuzzable=False)
+        # View description (14B) = NodeID (2B) + timestamp (8B) + Version(4B)
+        s_bytes(b'\x00\x00', name='ViewDescription NodeID', fuzzable=False)
+        s_qword(0, name='ViewDescription timestamp')
+        s_dword(0, name='ViewDescription version', fuzzable=False)
+        s_dword(100, name='RequestedMaxReferencesPerNode', fuzzable=False)
+        # Node to browse
 
 
+browse_objects_msg.__doc__ = "Find the references of the Object Node"
 
 # 37 Services:
 #   Discovery: FindServers - FindServersOnNetwork - GetEndpoints - RegisterServer(called from server, not interesting) - 
