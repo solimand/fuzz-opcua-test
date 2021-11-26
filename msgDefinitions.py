@@ -16,6 +16,8 @@ from fuzzConstants import READ_MSG_NAME, READ_MSG_HEADER_NAME, READ_MSG_BODY_NAM
 
 from fuzzConstants import BROWSE_MSG_NAME, BROWSE_MSG_HEADER_NAME, BROWSE_MSG_BODY_NAME, BROWSE_MSG_TYPE_ID
 
+from fuzzConstants import WRITE_MSG_NAME, WRITE_MSG_HEADER_NAME, WRITE_MSG_BODY_NAME, WRITE_MSG_TYPE_ID
+
 from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_size, s_qword
 
 # Dates
@@ -87,8 +89,8 @@ def open_msg():
         s_dword(len(OPEN_MSG_SEC_POLICY_NONE), name='uri length')
         s_bytes(OPEN_MSG_SEC_POLICY_NONE, name='security policy uri')
         #for following values refer to docs/MsgFormats/OpenSecureChannel
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='sender certificate')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='receiver certificate thumbprint')
+        s_bytes(b'\xff\xff\xff\xff', name='sender certificate')
+        s_bytes(b'\xff\xff\xff\xff', name='receiver certificate thumbprint')
         s_dword(1, name='sequence number')
         s_dword(1, name='request id')
         #Encodable Obj > Expanded NodeID
@@ -99,7 +101,7 @@ def open_msg():
         #s_qword(opcua_time_v2(), name='timestamp')
         s_dword(1, name='request handle')
         s_dword(0, name='return diagnostics')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
+        s_bytes(b'\xff\xff\xff\xff', name='audit entry id')
         s_dword(1000, name='timeout hint')
         s_bytes(b'\x00\x00\x00', name='additional header')
         # Req params     
@@ -122,8 +124,8 @@ def open_msg_nf():
         s_dword(len(OPEN_MSG_SEC_POLICY_NONE), name='uri length', fuzzable=False)
         s_bytes(OPEN_MSG_SEC_POLICY_NONE, name='security policy uri', fuzzable=False)
         #for following values refer to docs/MsgFormats/OpenSecureChannel
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='sender certificate', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='receiver certificate thumbprint', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='sender certificate', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='receiver certificate thumbprint', fuzzable=False)
         s_dword(1, name='sequence number', fuzzable=False)
         s_dword(1, name='request id', fuzzable=False)
         #Encodable Obj > Expanded NodeID
@@ -133,7 +135,7 @@ def open_msg_nf():
         s_qword(opcua_time(), name='timestamp', fuzzable=False)
         s_dword(1, name='request handle', fuzzable=False)
         s_dword(0, name='return diagnostics', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='audit entry id', fuzzable=False)
         s_dword(1000, name='timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='additional header', fuzzable=False)
         # Req params     
@@ -166,7 +168,7 @@ def close_msg():
         s_qword(opcua_time(), name='timestamp', fuzzable=False)
         s_dword(1, name='request handle')
         s_dword(0, name='return diagnostics')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
+        s_bytes(b'\xff\xff\xff\xff', name='audit entry id')
         s_dword(10000, name='timeout hint')
         s_bytes(b'\x00\x00\x00', name='additional header')
 
@@ -191,7 +193,7 @@ def close_msg_nf():
         s_qword(opcua_time(), name='timestamp', fuzzable=False)
         s_dword(1, name='request handle', fuzzable=False)
         s_dword(0, name='return diagnostics', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='audit entry id', fuzzable=False)
         s_dword(10000, name='timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='additional header', fuzzable=False)
 
@@ -217,14 +219,14 @@ def get_endpoints_msg():
         s_qword(opcua_time(), name='timestamp')
         s_dword(1, name='request handle')
         s_dword(0, name='return diagnostics')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
+        s_bytes(b'\xff\xff\xff\xff', name='audit entry id')
         s_dword(1000, name='timeout hint')
         s_bytes(b'\x00\x00\x00', name='additional header')
         # request parameter
         s_dword(len(ENDPOINT_STRING), name='Url length')
         s_bytes(ENDPOINT_STRING, name='Endpoint url')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='locale ids')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='profile ids')
+        s_bytes(b'\xff\xff\xff\xff', name='locale ids')
+        s_bytes(b'\xff\xff\xff\xff', name='profile ids')
 
 def get_endpoints_msg_nf():
     s_initialize(GET_ENDPOINTS_MSG_NAME)
@@ -246,14 +248,14 @@ def get_endpoints_msg_nf():
         s_qword(opcua_time(), name='timestamp', fuzzable=False)
         s_dword(1, name='request handle', fuzzable=False)
         s_dword(0, name='return diagnostics', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='audit entry id', fuzzable=False)
         s_dword(1000, name='timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='additional header', fuzzable=False)
         # request parameter
         s_dword(len(ENDPOINT_STRING), name='Url length', fuzzable=False)
         s_bytes(ENDPOINT_STRING, name='Endpoint url', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='locale ids', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='profile ids', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='locale ids', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='profile ids', fuzzable=False)
 
 
 # -----------------------CREATE SESSION MSG---------------------
@@ -277,7 +279,7 @@ def create_session_msg():
         s_qword(opcua_time(), name='timestamp')
         s_dword(1, name='request handle')
         s_dword(0, name='return diagnostics')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id')
+        s_bytes(b'\xff\xff\xff\xff', name='audit entry id')
         s_dword(1000, name='timeout hint')
         s_bytes(b'\x00\x00\x00', name='additional header')
             # application description
@@ -289,11 +291,11 @@ def create_session_msg():
         s_dword(len(CREATE_SESSION_MSG_APP_NAME_STRING), name='Application Name Length')        
         s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Application Name')
         s_dword(1, name='Application Type')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='GatewayServerUri')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryProfileUri')
+        s_bytes(b'\xff\xff\xff\xff', name='GatewayServerUri')
+        s_bytes(b'\xff\xff\xff\xff', name='DiscoveryProfileUri')
         s_bytes(b'\x00\x00\x00\x00', name='DiscoveryUrls') 
             # create session parameter
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='ServerUri')
+        s_bytes(b'\xff\xff\xff\xff', name='ServerUri')
         s_dword(len(ENDPOINT_STRING), name='Url length')
         s_bytes(ENDPOINT_STRING, name='Endpoint url')
         s_dword(len(CREATE_SESSION_MSG_SESSION_NAME), name='Session Name Length')        
@@ -302,7 +304,7 @@ def create_session_msg():
         s_qword(0, name='ClientNonce part 2')
         s_qword(0, name='ClientNonce part 3')
         s_qword(0, name='ClientNonce part 4')
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientCertificate')
+        s_bytes(b'\xff\xff\xff\xff', name='ClientCertificate')
         s_bytes(struct.pack('d', 1200000.0), name='Requested Session Timeout')
         s_dword(16777216, name='MaxResponseMessageSize')
 
@@ -326,7 +328,7 @@ def create_session_msg_nf():
         s_qword(opcua_time(), name='timestamp', fuzzable=False)
         s_dword(1, name='request handle', fuzzable=False)
         s_dword(0, name='return diagnostics', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='audit entry id', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='audit entry id', fuzzable=False)
         s_dword(1000, name='timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='additional header', fuzzable=False)
             # application description
@@ -338,11 +340,11 @@ def create_session_msg_nf():
         s_dword(len(CREATE_SESSION_MSG_APP_NAME_STRING), name='Application Name Length', fuzzable=False)        
         s_bytes(CREATE_SESSION_MSG_APP_NAME_STRING, name='Application Name', fuzzable=False)
         s_dword(1, name='Application Type', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='GatewayServerUri', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='DiscoveryProfileUri', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='GatewayServerUri', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='DiscoveryProfileUri', fuzzable=False)
         s_bytes(b'\x00\x00\x00\x00', name='DiscoveryUrls', fuzzable=False) 
             # create session parameter
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='ServerUri', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='ServerUri', fuzzable=False)
         s_dword(len(ENDPOINT_STRING), name='Url length', fuzzable=False)
         s_bytes(ENDPOINT_STRING, name='Endpoint url', fuzzable=False)
         s_dword(len(CREATE_SESSION_MSG_SESSION_NAME), name='Session Name Length', fuzzable=False)        
@@ -351,7 +353,7 @@ def create_session_msg_nf():
         s_qword(0, name='ClientNonce part 2', fuzzable=False)
         s_qword(0, name='ClientNonce part 3', fuzzable=False)
         s_qword(0, name='ClientNonce part 4', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='ClientCertificate', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='ClientCertificate', fuzzable=False)
         s_bytes(struct.pack('d', 1200000.0), name='Requested Session Timeout', fuzzable=False)
         s_dword(16777216, name='MaxResponseMessageSize', fuzzable=False)
 
@@ -380,12 +382,12 @@ def activate_session_msg():
         s_qword(opcua_time(), name='timestamp')
         s_dword(1, name='Request handle', fuzzable=False)
         s_dword(0, name='Return diagnostics', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False) # malformed if negative value
+        s_bytes(b'\xff\xff\xff\xff', name='Audit entry id', fuzzable=False) # malformed if negative value
         s_dword(10000, name='Timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='Additional header')
             # ClientSignature: SignatureData
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client algorithm', fuzzable=False) # malformed if negative value
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client signature', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='Client algorithm', fuzzable=False) # malformed if negative value
+        s_bytes(b'\xff\xff\xff\xff', name='Client signature', fuzzable=False)
         # ClientSoftwareCertificates: Array of SignedSoftwareCertificate
         s_dword(0, name='Array size client cert', fuzzable=False)
             # LocaleIds: Array of String = array size & LocaleIds: en-US -> \x65\x6e\x2d\x55\x53
@@ -415,11 +417,11 @@ def activate_session_msg():
             s_bytes(username, name='username')
             s_dword(len(password), name='password length')
             s_bytes(password, name='password')
-            s_bytes(b'\xFF\xFF\xFF\xFF', name='encryption algorithm')
+            s_bytes(b'\xff\xff\xff\xff', name='encryption algorithm')
         '''
         # UserTokenSignature: SignatureData
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token sign algorithm', fuzzable=False) # malformed if negative value
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token signature', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='User token sign algorithm', fuzzable=False) # malformed if negative value
+        s_bytes(b'\xff\xff\xff\xff', name='User token signature', fuzzable=False)
 
 def activate_session_msg_nf():
     s_initialize(ACTIVATE_SESSION_MSG_NAME)
@@ -443,12 +445,12 @@ def activate_session_msg_nf():
         s_qword(opcua_time(), name='timestamp', fuzzable=False)
         s_dword(1, name='Request handle', fuzzable=False)
         s_dword(0, name='Return diagnostics', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False) # malformed if negative value
+        s_bytes(b'\xff\xff\xff\xff', name='Audit entry id', fuzzable=False) # malformed if negative value
         s_dword(10000, name='Timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='Additional header', fuzzable=False)
             # ClientSignature: SignatureData
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client algorithm', fuzzable=False) # malformed if negative value
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Client signature', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='Client algorithm', fuzzable=False) # malformed if negative value
+        s_bytes(b'\xff\xff\xff\xff', name='Client signature', fuzzable=False)
         # ClientSoftwareCertificates: Array of SignedSoftwareCertificate
         s_dword(0, name='Array size client cert', fuzzable=False)
             # LocaleIds: Array of String = array size & LocaleIds: en-US -> \x65\x6e\x2d\x55\x53
@@ -461,8 +463,8 @@ def activate_session_msg_nf():
         s_dword(len(ACTIVATE_SESSION_MSG_POLICY_ID), name='Policy id length', fuzzable=False)
         s_bytes(ACTIVATE_SESSION_MSG_POLICY_ID, name='Policy id', fuzzable=False)
         # UserTokenSignature: SignatureData
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token sign algorithm', fuzzable=False) # malformed if negative value
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='User token signature', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='User token sign algorithm', fuzzable=False) # malformed if negative value
+        s_bytes(b'\xff\xff\xff\xff', name='User token signature', fuzzable=False)
 
 
 # -----------------------BROWSE/READ MSG---------------------
@@ -488,7 +490,7 @@ def read_objects_msg(serverStatus=False):
         s_qword(opcua_time(), name='timestamp')
         s_dword(1, name='Request handle', fuzzable=False)
         s_dword(0, name='Return diagnostics', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False) # malformed if negative value
+        s_bytes(b'\xff\xff\xff\xff', name='Audit entry id', fuzzable=False) # malformed if negative value
         s_dword(10000, name='Timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='Additional header', fuzzable=False)
         s_qword(0, name='Max age', fuzzable=False)
@@ -499,8 +501,8 @@ def read_objects_msg(serverStatus=False):
             s_dword(1, name='Array size', fuzzable=False)
             s_bytes(b'\x01\x00\xd3\x08', name='Node ID', fuzzable=False)
             s_dword(13, name='AttributeID', fuzzable=False)
-            s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range', fuzzable=False)
-            s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding', fuzzable=False)
+            s_bytes(b'\xff\xff\xff\xff', name='Index Range', fuzzable=False)
+            s_bytes(b'\x00\x00\xff\xff\xff\xff', name='Data Encoding', fuzzable=False)
         else:
             s_dword(11, name='Array size', fuzzable=False) # Number of objects to read - 11 for ObjNode
                 # ReadVal 16B = NodeID 2B + AttributeID 4B + IndexRange 4B + DataEncoding 6B
@@ -516,8 +518,8 @@ def read_objects_msg(serverStatus=False):
                     s_dword(26, name='AttributeID readval '+str(x), fuzzable=False)
                 elif (x==11):   # Event Notifier 0c
                     s_dword(12, name='AttributeID readval '+str(x), fuzzable=False)
-                s_bytes(b'\xFF\xFF\xFF\xFF', name='Index Range readval '+str(x), fuzzable=False)
-                s_bytes(b'\x00\x00\xFF\xFF\xFF\xFF', name='Data Encoding readval '+str(x), fuzzable=False)
+                s_bytes(b'\xff\xff\xff\xff', name='Index Range readval '+str(x), fuzzable=False)
+                s_bytes(b'\x00\x00\xff\xff\xff\xff', name='Data Encoding readval '+str(x), fuzzable=False)
 read_objects_msg.__doc__ = "Used to read Objects main attribute ids or the server status"
 
 def browse_objects_msg():
@@ -542,7 +544,7 @@ def browse_objects_msg():
         s_qword(opcua_time(), name='timestamp')
         s_dword(1, name='Request handle', fuzzable=False)
         s_dword(0, name='Return diagnostics', fuzzable=False)
-        s_bytes(b'\xFF\xFF\xFF\xFF', name='Audit entry id', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='Audit entry id', fuzzable=False)
         s_dword(10000, name='Timeout hint', fuzzable=False)
         s_bytes(b'\x00\x00\x00', name='Additional header', fuzzable=False)
         # View description (14B) = NodeID (2B) + timestamp (8B) + Version(4B)
@@ -560,6 +562,93 @@ def browse_objects_msg():
         s_bytes(b'\x00\x00\x00\x00', name='BrowseDescription NodeClassMask', fuzzable=False)
         s_bytes(b'\x3f\x00\x00\x00', name='BrowseDescription ResultMask All', fuzzable=False)
 browse_objects_msg.__doc__ = "Find the references of the Object Node"
+
+def browse_objects_msg_nf():
+    s_initialize(BROWSE_MSG_NAME)
+
+    with s_block(BROWSE_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Browse Request', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(BROWSE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(BROWSE_MSG_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from  create callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from create callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        # type id  b'\x01\x00\x0f\x02 > 0f02 > 020f > 527
+        s_bytes(b'\x01\x00' + struct.pack('<H', BROWSE_MSG_TYPE_ID), name='Type id', fuzzable=False)
+        #req header
+        s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False)
+        s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)        
+        s_bytes(b'\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff', name=ID_GUID_NAME, fuzzable=False) #from create callback
+        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_dword(1, name='Request handle', fuzzable=False)
+        s_dword(0, name='Return diagnostics', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='Audit entry id', fuzzable=False)
+        s_dword(10000, name='Timeout hint', fuzzable=False)
+        s_bytes(b'\x00\x00\x00', name='Additional header', fuzzable=False)
+        # View description (14B) = NodeID (2B) + timestamp (8B) + Version(4B)
+        s_bytes(b'\x00\x00', name='ViewDescription NodeID', fuzzable=False)
+        s_qword(0, name='ViewDescription timestamp', fuzzable=False)
+        s_dword(0, name='ViewDescription version', fuzzable=False)
+        s_dword(100, name='RequestedMaxReferencesPerNode', fuzzable=False)
+        # Node to browse
+        s_dword(1, name='Array size', fuzzable=False)
+        # Browse Descr (17B in case of object node) = NodeID (1B+1B) + BrowseDirection (4B) + RefTypeID (2B) + IncludeSubType (1B) + NodeClassMask (4B) + ResultMask (4B)
+        s_bytes(b'\x00\x55', name='BrowseDescription NodeID', fuzzable=False) # 55h = 85d
+        s_bytes(b'\x00\x00\x00\x00', name='BrowseDescription direction forward', fuzzable=False)
+        s_bytes(b'\x00\x1f', name='BrowseDescription ReferenceType NodeID', fuzzable=False) # 1fh=31d
+        s_bytes(b'\x01', name='BrowseDescription Include SubType true', fuzzable=False)
+        s_bytes(b'\x00\x00\x00\x00', name='BrowseDescription NodeClassMask', fuzzable=False)
+        s_bytes(b'\x3f\x00\x00\x00', name='BrowseDescription ResultMask All', fuzzable=False)
+
+
+# -----------------------WRITE VAR MSG---------------------
+def write_variable_msg():
+    s_initialize(WRITE_MSG_NAME)
+
+    with s_block(WRITE_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Write Request', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(WRITE_MSG_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(WRITE_MSG_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from  create callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from create callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        # type id  b'\x01\x00\xa1\x02 > a102 > 02a1 > 673
+        s_bytes(b'\x01\x00' + struct.pack('<H', WRITE_MSG_TYPE_ID), name='Type id', fuzzable=False)
+        #req header
+        s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False)
+        s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)        
+        s_bytes(b'\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff', name=ID_GUID_NAME, fuzzable=False) #from create callback
+        s_qword(opcua_time(), name='timestamp')
+        s_dword(1, name='Request handle', fuzzable=False)
+        s_dword(0, name='Return diagnostics', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='Audit entry id', fuzzable=False)
+        s_dword(10000, name='Timeout hint', fuzzable=False)
+        s_bytes(b'\x00\x00\x00', name='Additional Header', fuzzable=False)
+        # Nodes to write
+        s_dword(1, name='Array size', fuzzable=False)
+        # Node ID
+        s_bytes(b'\x03', name='Encoding mask NodeID', fuzzable=False)
+        s_bytes(b'\x01\x00', name='Namespace idx NodeID', fuzzable=False)
+        # TODO if string, size of string + string, else only id (4B?)
+        # TODO variableName from Browse msg
+        s_dword(len('variableName'), name='Variable Name length', fuzzable=False)
+        s_bytes('variableName'.encode('utf-8'), name='Variable Name', fuzzable=False)
+        s_dword(13, name='AttributeID Value', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='Index Range NodeID', fuzzable=False)
+        s_bytes(b'\x01', name='Encoding mask Value', fuzzable=False) # 01=hasValue
+        s_bytes(b'\x06', name='Value Type', fuzzable=False) # 06=Int32
+        s_dword(50, name='Int32 Value')
+
+
+write_variable_msg.__doc__ = "Used to write the Value of a Variable"
+
+
 
 # 37 Services:
 #   Discovery: FindServers - FindServersOnNetwork - GetEndpoints - RegisterServer(called from server, not interesting) - 
