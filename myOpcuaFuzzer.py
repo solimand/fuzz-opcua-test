@@ -20,7 +20,7 @@ from fuzzConstants import WRITE_MSG_NAME, WRITE_MSG_BODY_NAME, WRITE_MSG_SEC_CH_
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get, ProcessMonitor
 
-from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg, activate_session_msg_nf, read_objects_msg, browse_objects_msg, browse_objects_msg_nf
+from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg, activate_session_msg_nf, read_objects_msg, browse_objects_msg, browse_objects_msg_nf, write_variable_msg
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
@@ -241,6 +241,8 @@ def main():
     browse_objects_msg_nf()
     #browse_objects_msg()
 
+    #write_variable_msg_nf()
+    write_variable_msg()
 
     # SESSION building----------
     session = Session(
@@ -249,7 +251,7 @@ def main():
         #post_test_case_callbacks=[generic_callback], #executed at the end of the chain
         sleep_time=0, #sleep at the end of the graph
         receive_data_after_fuzz=True, #receive last response if there is
-        keep_web_open=True, #close web UI at the end of the graph
+        keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
         index_start=1,
         index_end=1)
@@ -273,8 +275,8 @@ def main():
     session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(BROWSE_MSG_NAME), callback=create_callback)
     session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
 
-    # TODO chain = browse res (NodeClass Var -> NodeID) write req (write value field of that node id)
-
+    # TODO chain = browse res callback
+    # (NodeClass Var -> NodeID) write req (write value field of that node id)
 
     # TODO procmon and netmon
     # session graph PNG creation

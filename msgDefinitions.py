@@ -637,13 +637,13 @@ def write_variable_msg():
         s_bytes(b'\x01\x00', name='Namespace idx NodeID', fuzzable=False)
         # TODO if string, size of string + string, else only id (4B?)
         # TODO variableName from Browse msg
-        s_dword(len('variableName'), name='Variable Name length', fuzzable=False)
-        s_bytes('variableName'.encode('utf-8'), name='Variable Name', fuzzable=False)
+        s_dword(len('the.answer'), name='Variable Name length', fuzzable=False)
+        s_bytes('the.answer'.encode('utf-8'), name='Variable Name', fuzzable=False)
         s_dword(13, name='AttributeID Value', fuzzable=False)
         s_bytes(b'\xff\xff\xff\xff', name='Index Range NodeID', fuzzable=False)
         s_bytes(b'\x01', name='Encoding mask Value', fuzzable=False) # 01=hasValue
         s_bytes(b'\x06', name='Value Type', fuzzable=False) # 06=Int32
-        s_dword(50, name='Int32 Value')
+        s_dword(100, name='Int32 Value')
 
 
 write_variable_msg.__doc__ = "Used to write the Value of a Variable"
