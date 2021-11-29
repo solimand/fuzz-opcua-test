@@ -143,9 +143,10 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[BROWSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             node.names[BROWSE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
         elif ((node.stack[1]._name == WRITE_MSG_BODY_NAME)):
-            print_dbg('browse req version')
+            print_dbg('write req version')
             # the msg browse_response (occurring before write_request in the fuzzing chain)
             #   has the same security params of create_res but no auth token id
+            # TODO find variables to write
             node.names[WRITE_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
             node.names[WRITE_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
             node.names[WRITE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
@@ -275,8 +276,12 @@ def main():
     session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(BROWSE_MSG_NAME), callback=create_callback)
     session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
 
-    # TODO chain = browse res callback
-    # (NodeClass Var -> NodeID) write req (write value field of that node id)
+    # TODO add following chains
+    #   browse-read (callback giving the nodeID of variables)
+    #       (if NodeClass Var -> take NodeID)
+    #   read-write (callback giving the writable variables)
+    
+    
 
     # TODO procmon and netmon
     # session graph PNG creation
