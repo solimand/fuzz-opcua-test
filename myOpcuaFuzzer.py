@@ -121,7 +121,8 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
             print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
-            # save this value for activate_session_response callback
+            # in my chain activate_sess_req always follows a create_sess_res
+            #   I save the token only when a new create_sess_res occurs
             global auth_token_read_req
             auth_token_read_req = authId_plain
         elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):
@@ -146,12 +147,60 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             print_dbg('write req version')
             # the msg browse_response (occurring before write_request in the fuzzing chain)
             #   has the same security params of create_res but no auth token id
-            # TODO find variables to write
             node.names[WRITE_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
             node.names[WRITE_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
             node.names[WRITE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[WRITE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             node.names[WRITE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
+            # SEARCHING Variables at first lvl
+            #   Browse Res from Browse Object => size ArrayOfBrowseResult=1, analyzing ArrayOfRefDescr
+            #       size ArrayOfRefDescr 40B after reqId
+            startRefDescr = 68
+            arrayOfRefDescrSize = struct.unpack('i', res[64:startRefDescr])[0]
+            print_dbg('arraySize = ' + str(arrayOfRefDescrSize))
+            # foreach arraysize...
+            accu = 0 # TODO fix case 2--- problemi with the first two ID MASK - check also case 1
+            for x in range(2):
+                    # The referenceType NodeID is always 2B and 1B isForward (68+3)
+                    #   next encoding mask: if 00-skip2B, if 01-skip4B
+                expandedNodeIdMask = accu + startRefDescr + 3
+                print_dbg('encMask1 '  + str(x) + ' ' + str(res[expandedNodeIdMask]))
+                if (res[expandedNodeIdMask] == 0): # two B encoded numeric
+                    startBrowseName = expandedNodeIdMask + 1
+                elif (res[expandedNodeIdMask] == 1): # four B encoded numeric
+                    startBrowseName = expandedNodeIdMask + 3
+                else:
+                    fuzz_data_logger.log_error('ERR - expandedNodeIdMask1 not implemented')
+                    # QualifiedName = 2B(ID) + 4B (size) + QualifiedNameString
+                startSizeQualifiedName = startBrowseName + 3
+                endSizeQualifiedName = startSizeQualifiedName + 4
+                sizeQualifiedName = struct.unpack('i', res[startSizeQualifiedName:endSizeQualifiedName])[0]
+                print_dbg('size qual name ' + str(x) + ' ' + str(res[startSizeQualifiedName]) + ' ' + str(res[endSizeQualifiedName]))
+                startQualifiedName = endSizeQualifiedName
+                endQualifiedName = startQualifiedName + sizeQualifiedName
+                locTxtqualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")
+                #print_dbg('qualified name '+qualifiedName)
+                    # LocalizedText = 1B (mask) + 4B (locale) + 4B (size) + Txt + 4B (NodeClass)
+                startSizeLocText = endQualifiedName + 5
+                endSizeLocText = startSizeLocText + 4
+                sizeLocText = struct.unpack('i', res[startSizeLocText:endSizeLocText])[0]
+                startLocText = endSizeLocText
+                endLocText = startLocText + sizeLocText
+                locTxt = res[startLocText:endLocText].decode("utf-8")
+                print_dbg('qualified name '+locTxt)
+                nodeClassType = struct.unpack('i', res[endLocText:endLocText+4])[0]
+                print_dbg('nodeclass id ' + str(nodeClassType))
+                expandedNodeIdMask2 = endLocText + 4 # 4B NodeClass
+                if (res[expandedNodeIdMask2] == 0): # two B encoded numeric
+                    itemTail = expandedNodeIdMask2 + 1
+                elif (res[expandedNodeIdMask2] == 1): # four B encoded numeric
+                    itemTail = expandedNodeIdMask2 + 3
+                else:
+                    fuzz_data_logger.log_error('ERR - expandedNodeIdMask not implemented')
+                # set accu for next for loop
+                accu=itemTail
+                print_dbg('accu ' + str(accu))
+
         else:
             fuzz_data_logger.log_error('ERR - callback not implementated for msg')
             print('ERR on msg body %s', node.stack[1]._name)
