@@ -161,8 +161,8 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             # foreach arraysize...
 
             accu = 0
-            for x in range(2):
-            #for x in range(arrayOfRefDescrSize):
+            #for x in range(2):
+            for x in range(arrayOfRefDescrSize):
                     # The referenceType NodeID is always 2B and 1B isForward (68+3)
                     #   next encoding mask: if 00-skip2B, if 01-skip4B
                 if (x==0):
@@ -174,6 +174,16 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                     startBrowseName = expandedNodeIdMask + 1
                 elif (res[expandedNodeIdMask] == 1): # four B encoded numeric
                     startBrowseName = expandedNodeIdMask + 3
+                elif (res[expandedNodeIdMask] == 3): # 1B mask + 2B namespace - 4B dim + string
+                     startDimVarName = expandedNodeIdMask + 3
+                     endDimVarName = startDimVarName + 4
+                     dimVarName = struct.unpack('i', res[startDimVarName:endDimVarName])[0]
+                     startVarName = endDimVarName
+                     endVarName = startVarName + dimVarName
+                     varName = res[startVarName:endVarName].decode("utf-8")
+                     print_dbg('var name: '+varName)
+                     print_dbg('end var: '+str(res[endVarName-1])) # ok this is the last char of the name
+                     startBrowseName = endVarName
                 else:
                     fuzz_data_logger.log_error('ERR - expandedNodeIdMask1 not implemented')
                     # QualifiedName = 2B(ID) + 4B (size) + QualifiedNameString
@@ -186,6 +196,8 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 locTxtqualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")
                 #print_dbg('qualified name '+qualifiedName)
                     # LocalizedText = 1B (mask) + 4B (locale) + 4B (size) + Txt + 4B (NodeClass)
+                # TODO check if locale is a string
+                
                 startSizeLocText = endQualifiedName + 5
                 endSizeLocText = startSizeLocText + 4
                 sizeLocText = struct.unpack('i', res[startSizeLocText:endSizeLocText])[0]
@@ -201,7 +213,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 elif (res[expandedNodeIdMask2] == 1): # four B encoded numeric
                     itemTail = expandedNodeIdMask2 + 3
                 else:
-                    fuzz_data_logger.log_error('ERR - expandedNodeIdMask not implemented')
+                    fuzz_data_logger.log_error('ERR - expandedNodeIdMask2 not implemented')
                 # set accu for next for loop
                 accu=itemTail
                 print_dbg('accu ' + str(accu))
