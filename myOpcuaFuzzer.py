@@ -33,6 +33,7 @@ from pprint import pprint #print obj attributes -> pprint(vars(obj))
 
 # global vars that must survive to callback execs
 auth_token_read_req = ''
+servVars = []
 
 # -----------------------CallBacks------------------
 #TODO callback for endpoint url
@@ -158,10 +159,8 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             startRefDescr = 68
             arrayOfRefDescrSize = struct.unpack('i', res[64:startRefDescr])[0]
             print_dbg('arraySize = ' + str(arrayOfRefDescrSize))
-            # foreach arraysize...
-
             accu = 0
-            #for x in range(2):
+            varNameBool = False
             for x in range(arrayOfRefDescrSize):
                     # The referenceType NodeID is always 2B and 1B isForward (68+3)
                     #   next encoding mask: if 00-skip2B, if 01-skip4B
@@ -175,36 +174,47 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 elif (res[expandedNodeIdMask] == 1): # four B encoded numeric
                     startBrowseName = expandedNodeIdMask + 3
                 elif (res[expandedNodeIdMask] == 3): # 1B mask + 2B namespace - 4B dim + string
-                     startDimVarName = expandedNodeIdMask + 3
-                     endDimVarName = startDimVarName + 4
-                     dimVarName = struct.unpack('i', res[startDimVarName:endDimVarName])[0]
-                     startVarName = endDimVarName
-                     endVarName = startVarName + dimVarName
-                     varName = res[startVarName:endVarName].decode("utf-8")
-                     print_dbg('var name: '+varName)
-                     print_dbg('end var: '+str(res[endVarName-1])) # ok this is the last char of the name
-                     startBrowseName = endVarName
+                    varNameBool = True
+                    startDimVarName = expandedNodeIdMask + 3
+                    endDimVarName = startDimVarName + 4
+                    dimVarName = struct.unpack('i', res[startDimVarName:endDimVarName])[0]
+                    startVarName = endDimVarName
+                    endVarName = startVarName + dimVarName
+                    varName = res[startVarName:endVarName].decode("utf-8")
+                    print_dbg('var name: '+varName)# ok -> save these vars for WRITE_RES
+                    servVars.append(varName)
+                    startBrowseName = endVarName
                 else:
                     fuzz_data_logger.log_error('ERR - expandedNodeIdMask1 not implemented')
                     # QualifiedName = 2B(ID) + 4B (size) + QualifiedNameString
-                startSizeQualifiedName = startBrowseName + 3
+                if (varNameBool):
+                    startSizeQualifiedName = startBrowseName + 2
+                else:
+                    startSizeQualifiedName = startBrowseName + 3
                 endSizeQualifiedName = startSizeQualifiedName + 4
                 sizeQualifiedName = struct.unpack('i', res[startSizeQualifiedName:endSizeQualifiedName])[0]
-                print_dbg('size qual name ' + str(x) + ' ' + str(sizeQualifiedName))
                 startQualifiedName = endSizeQualifiedName
                 endQualifiedName = startQualifiedName + sizeQualifiedName
-                locTxtqualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")
-                #print_dbg('qualified name '+qualifiedName)
+                qualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")
+                print_dbg('qual name ' + str(x) + ' ' + qualifiedName)
                     # LocalizedText = 1B (mask) + 4B (locale) + 4B (size) + Txt + 4B (NodeClass)
-                # TODO check if locale is a string
-                
-                startSizeLocText = endQualifiedName + 5
+                # check if locale is a string
+                startDimLocale = endQualifiedName+1
+                endDimLocale = startDimLocale + 4
+                dimLocale = struct.unpack('i', res[startDimLocale:endDimLocale])[0]
+                if(dimLocale!=0):
+                    startLocale = endQualifiedName + 5
+                    endLocale = startLocale + dimLocale
+                    locale = res[startLocale:endLocale].decode("utf-8")
+                    startSizeLocText = endLocale
+                else:
+                    startSizeLocText = endQualifiedName + 5
+
                 endSizeLocText = startSizeLocText + 4
                 sizeLocText = struct.unpack('i', res[startSizeLocText:endSizeLocText])[0]
                 startLocText = endSizeLocText
                 endLocText = startLocText + sizeLocText
                 locTxt = res[startLocText:endLocText].decode("utf-8")
-                print_dbg('qualified name '+locTxt)
                 nodeClassType = struct.unpack('i', res[endLocText:endLocText+4])[0]
                 print_dbg('nodeclass id ' + str(nodeClassType))
                 expandedNodeIdMask2 = endLocText + 4 # 4B NodeClass
@@ -216,8 +226,6 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                     fuzz_data_logger.log_error('ERR - expandedNodeIdMask2 not implemented')
                 # set accu for next for loop
                 accu=itemTail
-                print_dbg('accu ' + str(accu))
-
         else:
             fuzz_data_logger.log_error('ERR - callback not implementated for msg')
             print('ERR on msg body %s', node.stack[1]._name)
@@ -356,6 +364,7 @@ def main():
 
     try:
         session.fuzz()
+        print_dbg('server vars ' + str(servVars)) # TODO WRITE_RES for these vars
     except KeyboardInterrupt:
         pass
 
