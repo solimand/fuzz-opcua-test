@@ -159,12 +159,17 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             arrayOfRefDescrSize = struct.unpack('i', res[64:startRefDescr])[0]
             print_dbg('arraySize = ' + str(arrayOfRefDescrSize))
             # foreach arraysize...
-            accu = 0 # TODO fix case 2--- problemi with the first two ID MASK - check also case 1
+
+            accu = 0
             for x in range(2):
+            #for x in range(arrayOfRefDescrSize):
                     # The referenceType NodeID is always 2B and 1B isForward (68+3)
                     #   next encoding mask: if 00-skip2B, if 01-skip4B
-                expandedNodeIdMask = accu + startRefDescr + 3
-                print_dbg('encMask1 '  + str(x) + ' ' + str(res[expandedNodeIdMask]))
+                if (x==0):
+                    expandedNodeIdMask = accu + startRefDescr + 3
+                else:
+                    expandedNodeIdMask =  accu + startRefDescr + 3 - 67 # -67 because I must del the Bytes before 'MSG'
+                    # encoding mask: if 00-skip2B, if 01-skip4B
                 if (res[expandedNodeIdMask] == 0): # two B encoded numeric
                     startBrowseName = expandedNodeIdMask + 1
                 elif (res[expandedNodeIdMask] == 1): # four B encoded numeric
@@ -175,7 +180,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 startSizeQualifiedName = startBrowseName + 3
                 endSizeQualifiedName = startSizeQualifiedName + 4
                 sizeQualifiedName = struct.unpack('i', res[startSizeQualifiedName:endSizeQualifiedName])[0]
-                print_dbg('size qual name ' + str(x) + ' ' + str(res[startSizeQualifiedName]) + ' ' + str(res[endSizeQualifiedName]))
+                print_dbg('size qual name ' + str(x) + ' ' + str(sizeQualifiedName))
                 startQualifiedName = endSizeQualifiedName
                 endQualifiedName = startQualifiedName + sizeQualifiedName
                 locTxtqualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")
