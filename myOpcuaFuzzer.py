@@ -162,17 +162,30 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             accu = 0
             varNameBool = False
             for x in range(arrayOfRefDescrSize):
-                    # The referenceType NodeID is always 2B and 1B isForward (68+3)
+                    # The referenceType encodingMask
+                    #   0 - 2B
+                    #   1 - 4B
+                    #   2 - numeric arbitrary length 7B
                     #   next encoding mask: if 00-skip2B, if 01-skip4B
                 if (x==0):
-                    expandedNodeIdMask = accu + startRefDescr + 3
+                    refTypeEncMask = accu +startRefDescr
+                    #expandedNodeIdMask = accu + startRefDescr + 3
                 else:
-                    expandedNodeIdMask =  accu + startRefDescr + 3 - 67 # -67 because I must del the Bytes before 'MSG'
-                    # encoding mask: if 00-skip2B, if 01-skip4B
+                    refTypeEncMask = accu +startRefDescr -67 # -67 because I must del the Bytes before 'MSG'
+                    #expandedNodeIdMask =  accu + startRefDescr + 3 - 67 
+                if (res[refTypeEncMask] == 0):
+                    expandedNodeIdMask = refTypeEncMask + 3
+                elif (res[refTypeEncMask] == 1):
+                    expandedNodeIdMask = refTypeEncMask + 4
+                elif (res[refTypeEncMask] == 2):
+                    expandedNodeIdMask = refTypeEncMask + 8
+                    # expandedNode encoding mask: if 00-skip2B, if 01-skip4B, if 02-skip6B
                 if (res[expandedNodeIdMask] == 0): # two B encoded numeric
                     startBrowseName = expandedNodeIdMask + 1
                 elif (res[expandedNodeIdMask] == 1): # four B encoded numeric
                     startBrowseName = expandedNodeIdMask + 3
+                elif (res[expandedNodeIdMask] == 2): # numeric of arbitrary lenght
+                    startBrowseName = expandedNodeIdMask + 6
                 elif (res[expandedNodeIdMask] == 3): # 1B mask + 2B namespace - 4B dim + string
                     varNameBool = True
                     startDimVarName = expandedNodeIdMask + 3
@@ -197,24 +210,39 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 endQualifiedName = startQualifiedName + sizeQualifiedName
                 qualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")
                 print_dbg('qual name ' + str(x) + ' ' + qualifiedName)
-                    # LocalizedText = 1B (mask) + 4B (locale) + 4B (size) + Txt + 4B (NodeClass)
-                # check if locale is a string
-                startDimLocale = endQualifiedName+1
-                endDimLocale = startDimLocale + 4
-                dimLocale = struct.unpack('i', res[startDimLocale:endDimLocale])[0]
-                if(dimLocale!=0):
-                    startLocale = endQualifiedName + 5
-                    endLocale = startLocale + dimLocale
-                    locale = res[startLocale:endLocale].decode("utf-8")
-                    startSizeLocText = endLocale
+
+                # TODO FIX:
+                # opc: all good with locTxtEncMask = endQualifiedName
+                # python: good but there is expandedNodeIdMask2 not implemented
+
+                locTxtEncMask = endQualifiedName #+ 1
+                print_dbg('locTxtEncMask '+str(res[locTxtEncMask]))
+                if (res[locTxtEncMask] == 10 or res[locTxtEncMask] == 2): # 02 -> not locale, has txt
+                    startSizeLocText = locTxtEncMask + 1
+                    #print_dbg('should be here ' + str(res[startSizeLocText-1]))
+                elif (res[locTxtEncMask] == 3): # has locale and has text
+                    # check if locale is a string
+                    startDimLocale = endQualifiedName+1
+                    endDimLocale = startDimLocale + 4
+                    dimLocale = struct.unpack('i', res[startDimLocale:endDimLocale])[0]
+                    if(dimLocale!=0):
+                        startLocale = endQualifiedName + 5
+                        endLocale = startLocale + dimLocale
+                        locale = res[startLocale:endLocale].decode("utf-8")
+                        startSizeLocText = endLocale
+                    else:
+                        startSizeLocText = endQualifiedName + 5
                 else:
-                    startSizeLocText = endQualifiedName + 5
+                    fuzz_data_logger.log_error('ERR - locale txt enc mask not implemented')
 
                 endSizeLocText = startSizeLocText + 4
                 sizeLocText = struct.unpack('i', res[startSizeLocText:endSizeLocText])[0]
+                #print_dbg('size loc txt '+str(sizeLocText))
                 startLocText = endSizeLocText
                 endLocText = startLocText + sizeLocText
                 locTxt = res[startLocText:endLocText].decode("utf-8")
+                print_dbg('loc txt ' + locTxt)
+
                 nodeClassType = struct.unpack('i', res[endLocText:endLocText+4])[0]
                 print_dbg('nodeclass id ' + str(nodeClassType))
                 expandedNodeIdMask2 = endLocText + 4 # 4B NodeClass
