@@ -292,7 +292,7 @@ generic_callback.__doc__ = "Callback executed after each session graph test case
 
 
 # -----------------------MAIN---------------------
-# TODO add args to select which tests
+# TODO add args to select implementation-test VS information-model-test
 def main():
     # ARGS parsing----------
     parser = ArgumentParser(description='Fuzzing OPC UA server.')
@@ -313,13 +313,16 @@ def main():
         print('Usage : %s ipAddress' % args.addr)
         return
 
-    # Monitors
+    # TODO Monitors
     procmon = ProcessMonitor('127.0.0.1', PROC_MON_PORT)
     startcmd = ['python3', '/home/mik/workspaces/fuzz-opcua-test/myOpcuaFuzzer.py 127.0.0.1']
 
     #procmon.set_options(start_commands=[], capture_output=True)
 
     # MSGs building----------
+    # if impl-test -> enable msg()
+    # else -> enable msg_nf() and write_msg()
+
     hello_msg_nf()
     #hello_msg()
 
@@ -362,6 +365,9 @@ def main():
         #index_end=293)
         
     # GRAPH building----------
+    # if impl-test -> chain hel-open-create-activate-browse-close...
+    # else -> chain hel-open-create-activate-browse-write
+
     session.connect(s_get(HELLO_MSG_NAME))
 
     session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
@@ -383,9 +389,6 @@ def main():
     #       (if NodeClass Var -> take NodeID)
     #   read-write (callback giving the writable variables)
     
-    
-
-    # TODO procmon and netmon
     # session graph PNG creation
     #with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
     #    file.write(session.render_graph_graphviz().create_png())
