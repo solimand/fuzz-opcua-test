@@ -356,18 +356,17 @@ def main():
         #post_test_case_callbacks=[generic_callback], #executed at the end of the chain
         sleep_time=0, #sleep at the end of the graph
         receive_data_after_fuzz=True, #receive last response if there is
-        keep_web_open=False, #close web UI at the end of the graph
+        #keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
-        index_start=1,
-        index_end=1)
-        #index_start=291,
-        #index_end=293)
-        
+        #index_start=1, index_end=1     #single run
+        #index_start=2270*140*280,
+        #index_end=293
+        )
+
     # GRAPH building------------------------------
     session.connect(s_get(HELLO_MSG_NAME))
-    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
-    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME)) # ACK callback only for debug 
-
+    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)# ACK callback only for debug
+    '''
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
 
@@ -381,7 +380,7 @@ def main():
     if(args.info):      # TEST INFORMATION MODEL
         session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
     else:
-        session.connect(s_get(BROWSE_MSG_NAME), s_get(CLOSE_MSG_NAME))
+        session.connect(s_get(BROWSE_MSG_NAME), s_get(CLOSE_MSG_NAME))'''
 
 
     # TODO add following chains

@@ -18,7 +18,7 @@ from fuzzConstants import BROWSE_MSG_NAME, BROWSE_MSG_HEADER_NAME, BROWSE_MSG_BO
 
 from fuzzConstants import WRITE_MSG_NAME, WRITE_MSG_HEADER_NAME, WRITE_MSG_BODY_NAME, WRITE_MSG_TYPE_ID
 
-from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_size, s_qword
+from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_num_mutations, s_size, s_qword
 
 # Dates
 from datetime import datetime
