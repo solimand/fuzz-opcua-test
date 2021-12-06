@@ -28,12 +28,19 @@ import struct
 from argparse import ArgumentParser
 from ipaddress import ip_address
 
-# 4 DBG
+# for DBG
 from pprint import pprint #print obj attributes -> pprint(vars(obj))
 
 # global vars that must survive to callback execs
 auth_token_read_req = ''
 servVars = []
+test_info_model = False
+
+def set_test_info_model():
+    test_info_model = True
+
+def get_test_info_model():
+    return test_info_model
 
 # -----------------------CallBacks------------------
 #TODO callback for endpoint url
@@ -298,6 +305,7 @@ def main():
     parser = ArgumentParser(description='Fuzzing OPC UA server.')
     parser.add_argument('addr', metavar='ip-addr', type=str, help='The server host IP address')
     parser.add_argument('port', metavar='port', type=int, help='The server host port', default=4840, nargs='?')
+    parser.add_argument('-m', '--info', action="store_true", help='Test the information model instead of implementation')
     args = parser.parse_args()
 
     # IP ADDR validiation----------
@@ -319,38 +327,29 @@ def main():
 
     #procmon.set_options(start_commands=[], capture_output=True)
 
-    # MSGs building----------
-    # if impl-test -> enable msg()
-    # else -> enable msg_nf() and write_msg()
-
-    hello_msg_nf()
-    #hello_msg()
-
-    open_msg_nf()
-    #open_msg()
-
-    close_msg_nf()
-    #close_msg()
-
-    get_endpoints_msg_nf()
-    #get_endpoints_msg()
+    # MSGs building------------------------------
+    if(args.info):      # TEST INFORMATION MODEL
+        hello_msg_nf()
+        open_msg_nf()
+        close_msg_nf()
+        # get_endpoints_msg_nf()
+        create_session_msg_nf()
+        activate_session_msg_nf()
+        # read_objects_msg_nf()
+        browse_objects_msg_nf()
+        write_variable_msg()
+    else:               # TEST IMPLEMENTATION
+        hello_msg()
+        open_msg()    
+        close_msg()    
+        get_endpoints_msg()    
+        create_session_msg()
+        activate_session_msg()
+        read_objects_msg()
+        browse_objects_msg()
     
-    create_session_msg_nf()
-    #create_session_msg()
-    
-    activate_session_msg_nf()
-    #activate_session_msg()
 
-    #read_objects_msg_nf()
-    read_objects_msg()
-
-    browse_objects_msg_nf()
-    #browse_objects_msg()
-
-    #write_variable_msg_nf()
-    write_variable_msg()
-
-    # SESSION building----------
+    # SESSION building------------------------------
     session = Session(
         target=Target(
             connection=TCPSocketConnection(str(HOST_ADDR), OPC_UA_PORT)),
@@ -364,12 +363,8 @@ def main():
         #index_start=291,
         #index_end=293)
         
-    # GRAPH building----------
-    # if impl-test -> chain hel-open-create-activate-browse-close...
-    # else -> chain hel-open-create-activate-browse-write
-
+    # GRAPH building------------------------------
     session.connect(s_get(HELLO_MSG_NAME))
-
     session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)
     #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME)) # ACK callback only for debug 
 
@@ -378,11 +373,16 @@ def main():
 
     session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
     session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)
-    #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
 
+    #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(READ_MSG_NAME), callback=create_callback)
     session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(BROWSE_MSG_NAME), callback=create_callback)
-    session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
+
+    if(args.info):      # TEST INFORMATION MODEL
+        session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
+    else:
+        session.connect(s_get(BROWSE_MSG_NAME), s_get(CLOSE_MSG_NAME))
+
 
     # TODO add following chains
     #   browse-read (callback giving the nodeID of variables)
