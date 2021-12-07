@@ -644,8 +644,6 @@ def write_variable_msg():
         s_bytes(b'\x01', name='Encoding mask Value', fuzzable=False) # 01=hasValue
         s_bytes(b'\x06', name='Value Type', fuzzable=False) # 06=Int32
         s_dword(100, name='Int32 Value')
-
-
 write_variable_msg.__doc__ = "Used to write the Value of a Variable"
 
 

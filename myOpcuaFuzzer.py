@@ -402,7 +402,7 @@ def main():
             servVars.clear()
             print_dbg('fuzzing information model')
             session.fuzz() # first run finds variables, second run fuzz the write_msg
-            # TODO fix - send a random write to execute the callback to retrieve the variables
+            # TODO fix - send a random write fuzzable (maybe use a single s_byte fuzzable field to fuzz fast) to execute the callback to retrieve the variables
             print_dbg('server vars ' + str(servVars))
             if (servVars):
                 print_dbg('fuzzing writing variables...')
