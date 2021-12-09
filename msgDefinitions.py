@@ -605,7 +605,10 @@ def browse_objects_msg_nf():
 
 
 # -----------------------WRITE VAR MSG---------------------
-def write_variable_msg():
+# TODO variableName from Browse msg
+# TODO variableValue type
+# TODO do a fake fuzzing useful only to discover variable names
+def write_variable_msg(test=False, name='the.answer'):
     s_initialize(WRITE_MSG_NAME)
 
     with s_block(WRITE_MSG_HEADER_NAME):
@@ -635,10 +638,8 @@ def write_variable_msg():
         # Node ID
         s_bytes(b'\x03', name='Encoding mask NodeID', fuzzable=False)
         s_bytes(b'\x01\x00', name='Namespace idx NodeID', fuzzable=False)
-        # TODO if string, size of string + string, else only id (4B?)
-        # TODO variableName from Browse msg
-        s_dword(len('the.answer'), name='Variable Name length', fuzzable=False)
-        s_bytes('the.answer'.encode('utf-8'), name='Variable Name', fuzzable=False)
+        s_dword(len(name), name='Variable Name length', fuzzable=False)
+        s_bytes(name.encode('utf-8'), name='Variable Name', fuzzable=False)
         s_dword(13, name='AttributeID Value', fuzzable=False)
         s_bytes(b'\xff\xff\xff\xff', name='Index Range NodeID', fuzzable=False)
         s_bytes(b'\x01', name='Encoding mask Value', fuzzable=False) # 01=hasValue

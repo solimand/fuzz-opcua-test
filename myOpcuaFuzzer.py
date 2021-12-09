@@ -35,6 +35,7 @@ from pprint import pprint #print obj attributes -> pprint(vars(obj))
 auth_token_read_req = ''
 servVars = []
 test_info_model = False
+PNG_GRAPH_OUT_FILE = './mygraph.png'
 
 def set_test_info_model():
     test_info_model = True
@@ -321,12 +322,6 @@ def main():
         print('Usage : %s ipAddress' % args.addr)
         return
 
-    # TODO Monitors
-    procmon = ProcessMonitor('127.0.0.1', PROC_MON_PORT)
-    startcmd = ['python3', '/home/mik/workspaces/fuzz-opcua-test/myOpcuaFuzzer.py 127.0.0.1']
-
-    #procmon.set_options(start_commands=[], capture_output=True)
-
     # MSGs building------------------------------
     if(args.info):      # TEST INFORMATION MODEL
         hello_msg_nf()
@@ -361,7 +356,7 @@ def main():
         receive_data_after_fuzz=True, #receive last response if there is
         keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
-        index_start=1, index_end=1,     #single run
+        #index_start=1, index_end=1,     #single run
         #index_start=2270*140*280,      #start at certain point
         #index_start=0,
         #index_end=293
@@ -377,14 +372,14 @@ def main():
 
     session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
     session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)
-
-    #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
+    
     #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(READ_MSG_NAME), callback=create_callback)
-    session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(BROWSE_MSG_NAME), callback=create_callback)
 
-    if(args.info is not None):      # TEST IMPLEMENTATION
+    if(args.info):      # TEST INFORMATION MODEL
+        session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(BROWSE_MSG_NAME), callback=create_callback)
         session.connect(s_get(BROWSE_MSG_NAME), s_get(CLOSE_MSG_NAME))
-        
+    else:
+        session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #'''
 
 
@@ -394,15 +389,15 @@ def main():
     #   read-write (callback giving the writable variables)
     
     # session graph PNG creation
-    #with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
-    #    file.write(session.render_graph_graphviz().create_png())
+    with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
+        file.write(session.render_graph_graphviz().create_png())
 
     try:
         if (args.info):     # TEST INFORMATION MODEL
             servVars.clear()
             print_dbg('fuzzing information model')
-            session.fuzz() # first run finds variables, second run fuzz the write_msg
             # TODO fix - send a random write fuzzable (maybe use a single s_byte fuzzable field to fuzz fast) to execute the callback to retrieve the variables
+            session.fuzz() # first run finds variables, second run fuzz the write_msg
             print_dbg('server vars ' + str(servVars))
             if (servVars):
                 print_dbg('fuzzing writing variables...')
