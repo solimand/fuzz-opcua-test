@@ -209,9 +209,11 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                     startDimVarName = expandedNodeIdMask + 3
                     endDimVarName = startDimVarName + 4
                     dimVarName = struct.unpack('i', res[startDimVarName:endDimVarName])[0]
-                    startVarName = endDimVarName
+                    '''startVarName = endDimVarName
                     endVarName = startVarName + dimVarName
-                    varName = res[startVarName:endVarName].decode("utf-8")
+                    varName = res[startVarName:endVarName].decode("utf-8")'''
+                    endVarName = endDimVarName + dimVarName
+                    varName = res[endDimVarName:endVarName].decode("utf-8")
                     print_dbg('var name: '+varName)# ok -> save these vars for WRITE_RES
                     servVars.append(varName)
                     startBrowseName = endVarName
@@ -224,9 +226,11 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                     startSizeQualifiedName = startBrowseName + 3
                 endSizeQualifiedName = startSizeQualifiedName + 4
                 sizeQualifiedName = struct.unpack('i', res[startSizeQualifiedName:endSizeQualifiedName])[0]
-                startQualifiedName = endSizeQualifiedName
+                '''startQualifiedName = endSizeQualifiedName
                 endQualifiedName = startQualifiedName + sizeQualifiedName
-                qualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")
+                qualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")'''
+                endQualifiedName = endSizeQualifiedName + sizeQualifiedName
+                qualifiedName = res[endSizeQualifiedName:endQualifiedName].decode("utf-8")
                 print_dbg('qual name ' + str(x) + ' ' + qualifiedName)
 
                 # TODO FIX:
@@ -256,9 +260,11 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 endSizeLocText = startSizeLocText + 4
                 sizeLocText = struct.unpack('i', res[startSizeLocText:endSizeLocText])[0]
                 #print_dbg('size loc txt '+str(sizeLocText))
-                startLocText = endSizeLocText
+                '''startLocText = endSizeLocText
                 endLocText = startLocText + sizeLocText
-                locTxt = res[startLocText:endLocText].decode("utf-8")
+                locTxt = res[startLocText:endLocText].decode("utf-8")'''
+                endLocText = endSizeLocText + sizeLocText
+                locTxt = res[endSizeLocText:endLocText].decode("utf-8")
                 print_dbg('loc txt ' + locTxt)
 
                 nodeClassType = struct.unpack('i', res[endLocText:endLocText+4])[0]
@@ -366,7 +372,7 @@ def main():
         receive_data_after_fuzz=True, #receive last response if there is
         keep_web_open=False, #close web UI at the end of the graph
         #web_port=None,
-        #index_start=1, index_end=1,     #single run
+        index_start=1, index_end=1,     #single run
         #index_start=2270*140*280,      #start at certain point
         #index_start=0, index_end=3,     #single run
         #index_end=293
@@ -407,12 +413,12 @@ def main():
 
             session.fuzz() # first run finds variables, second run fuzz the write_msg
             print_dbg('server vars ' + str(servVars))
-            if (servVars):
+            '''if (servVars):
                 print_dbg('fuzzing writing variables...')
 
                 write_variable_msg() # TODO run the write with the variable name found(foreach)
                 session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
-                session.fuzz() # second run for variable fuzzing
+                session.fuzz() # second run for variable fuzzing'''
         else:               # TEST IMPLEMENTATION
             print_dbg('fuzzing implementation')
             session.fuzz()
