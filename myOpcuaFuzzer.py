@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from ctypes import sizeof
+from os import write
 from fuzzConstants import HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE, PROC_MON_PORT
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
@@ -15,12 +16,12 @@ from fuzzConstants import READ_MSG_NAME, READ_MSG_BODY_NAME, READ_MSG_SEC_CH_ID_
 
 from fuzzConstants import BROWSE_MSG_NAME, BROWSE_MSG_BODY_NAME, BROWSE_MSG_SEC_CH_ID_NODE_FIELD, BROWSE_MSG_TOKEN_ID_NODE_FIELD, BROWSE_MSG_SEQ_NUM_NODE_FIELD, BROWSE_MSG_SEQ_REQ_ID_NODE_FIELD, BROWSE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD
 
-from fuzzConstants import WRITE_MSG_NAME, WRITE_MSG_BODY_NAME, WRITE_MSG_SEC_CH_ID_NODE_FIELD, WRITE_MSG_TOKEN_ID_NODE_FIELD, WRITE_MSG_SEQ_NUM_NODE_FIELD, WRITE_MSG_SEQ_REQ_ID_NODE_FIELD, WRITE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD
+from fuzzConstants import WRITE_MSG_NAME, WRITE_MSG_FAKE_NAME, WRITE_MSG_BODY_NAME, WRITE_MSG_FAKE_BODY_NAME, WRITE_MSG_SEC_CH_ID_NODE_FIELD, WRITE_MSG_TOKEN_ID_NODE_FIELD, WRITE_MSG_SEQ_NUM_NODE_FIELD, WRITE_MSG_SEQ_REQ_ID_NODE_FIELD, WRITE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD, WRITE_MSG_FAKE_SEC_CH_ID_NODE_FIELD, WRITE_MSG_FAKE_TOKEN_ID_NODE_FIELD, WRITE_MSG_FAKE_SEQ_NUM_NODE_FIELD, WRITE_MSG_FAKE_SEQ_REQ_ID_NODE_FIELD, WRITE_MSG_FAKE_AUTH_TOKEN_ID_GUID_NODE_FIELD
 
 
 from boofuzz import Session, Target, TCPSocketConnection, s_get, ProcessMonitor
 
-from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg, activate_session_msg_nf, read_objects_msg, browse_objects_msg, browse_objects_msg_nf, write_variable_msg
+from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg, activate_session_msg_nf, read_objects_msg, browse_objects_msg, browse_objects_msg_nf, write_variable_msg, write_variable_msg_nf
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
@@ -161,6 +162,15 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[WRITE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[WRITE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             node.names[WRITE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
+        elif ((node.stack[1]._name == WRITE_MSG_FAKE_BODY_NAME)):
+            print_dbg('write FAKE req version')
+            # the msg browse_response (occurring before write_request in the fuzzing chain)
+            #   has the same security params of create_res but no auth token id
+            node.names[WRITE_MSG_FAKE_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[WRITE_MSG_FAKE_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[WRITE_MSG_FAKE_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[WRITE_MSG_FAKE_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            node.names[WRITE_MSG_FAKE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
             # SEARCHING Variables at first lvl
             #   Browse Res from Browse Object => size ArrayOfBrowseResult=1, analyzing ArrayOfRefDescr
             #       size ArrayOfRefDescr 40B after reqId
@@ -358,7 +368,7 @@ def main():
         #web_port=None,
         #index_start=1, index_end=1,     #single run
         #index_start=2270*140*280,      #start at certain point
-        #index_start=0,
+        #index_start=0, index_end=3,     #single run
         #index_end=293
         )
 
@@ -382,11 +392,6 @@ def main():
         session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #'''
 
-
-    # TODO add following chains
-    #   browse-read (callback giving the nodeID of variables)
-    #       (if NodeClass Var -> take NodeID)
-    #   read-write (callback giving the writable variables)
     
     # session graph PNG creation
     with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
@@ -394,13 +399,17 @@ def main():
 
     try:
         if (args.info):     # TEST INFORMATION MODEL
-            servVars.clear()
+            #servVars.clear()
+            # TODO fix repetitions - if I do a first session fuzz with WRITE_MSG_FAKE_NAME, it remains in the chain for the second run. this could not be a problem due to the rep_num of the WRITE_MSG_FAKE_NAME --> analyze this point
             print_dbg('fuzzing information model')
-            # TODO fix - send a random write fuzzable (maybe use a single s_byte fuzzable field to fuzz fast) to execute the callback to retrieve the variables
+            write_variable_msg_nf()
+            session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_FAKE_NAME), callback=create_callback)
+
             session.fuzz() # first run finds variables, second run fuzz the write_msg
             print_dbg('server vars ' + str(servVars))
             if (servVars):
                 print_dbg('fuzzing writing variables...')
+
                 write_variable_msg() # TODO run the write with the variable name found(foreach)
                 session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
                 session.fuzz() # second run for variable fuzzing

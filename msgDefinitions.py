@@ -16,9 +16,9 @@ from fuzzConstants import READ_MSG_NAME, READ_MSG_HEADER_NAME, READ_MSG_BODY_NAM
 
 from fuzzConstants import BROWSE_MSG_NAME, BROWSE_MSG_HEADER_NAME, BROWSE_MSG_BODY_NAME, BROWSE_MSG_TYPE_ID
 
-from fuzzConstants import WRITE_MSG_NAME, WRITE_MSG_HEADER_NAME, WRITE_MSG_BODY_NAME, WRITE_MSG_TYPE_ID
+from fuzzConstants import WRITE_MSG_NAME, WRITE_MSG_FAKE_NAME, WRITE_MSG_HEADER_NAME, WRITE_MSG_BODY_NAME, WRITE_MSG_FAKE_BODY_NAME,  WRITE_MSG_TYPE_ID
 
-from boofuzz import s_initialize, s_bytes, s_dword, s_block, s_num_mutations, s_size, s_qword
+from boofuzz import s_byte, s_initialize, s_bytes, s_dword, s_block, s_num_mutations, s_random, s_size, s_qword, s_static
 
 # Dates
 from datetime import datetime
@@ -607,8 +607,7 @@ def browse_objects_msg_nf():
 # -----------------------WRITE VAR MSG---------------------
 # TODO variableName from Browse msg
 # TODO variableValue type
-# TODO do a fake fuzzing useful only to discover variable names
-def write_variable_msg(test=False, name='the.answer'):
+def write_variable_msg(varName='the.answer'):
     s_initialize(WRITE_MSG_NAME)
 
     with s_block(WRITE_MSG_HEADER_NAME):
@@ -627,7 +626,7 @@ def write_variable_msg(test=False, name='the.answer'):
         s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False)
         s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)        
         s_bytes(b'\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff', name=ID_GUID_NAME, fuzzable=False) #from create callback
-        s_qword(opcua_time(), name='timestamp')
+        s_qword(opcua_time(), name='timestamp', fuzzable=False)
         s_dword(1, name='Request handle', fuzzable=False)
         s_dword(0, name='Return diagnostics', fuzzable=False)
         s_bytes(b'\xff\xff\xff\xff', name='Audit entry id', fuzzable=False)
@@ -638,8 +637,8 @@ def write_variable_msg(test=False, name='the.answer'):
         # Node ID
         s_bytes(b'\x03', name='Encoding mask NodeID', fuzzable=False)
         s_bytes(b'\x01\x00', name='Namespace idx NodeID', fuzzable=False)
-        s_dword(len(name), name='Variable Name length', fuzzable=False)
-        s_bytes(name.encode('utf-8'), name='Variable Name', fuzzable=False)
+        s_dword(len(varName), name='Variable Name length', fuzzable=False)
+        s_bytes(varName.encode('utf-8'), name='Variable Name', fuzzable=False)
         s_dword(13, name='AttributeID Value', fuzzable=False)
         s_bytes(b'\xff\xff\xff\xff', name='Index Range NodeID', fuzzable=False)
         s_bytes(b'\x01', name='Encoding mask Value', fuzzable=False) # 01=hasValue
@@ -647,6 +646,44 @@ def write_variable_msg(test=False, name='the.answer'):
         s_dword(100, name='Int32 Value')
 write_variable_msg.__doc__ = "Used to write the Value of a Variable"
 
+def write_variable_msg_nf():
+    s_initialize(WRITE_MSG_FAKE_NAME)
+
+    with s_block(WRITE_MSG_HEADER_NAME):
+        s_bytes(COMMON_MSG_TYPE, name='Write Request', fuzzable=False)
+        s_bytes(CHUNK_TYPE, name='Chunk type', fuzzable=False)
+        s_size(WRITE_MSG_FAKE_BODY_NAME, offset=8, name='body size', fuzzable=False)
+
+    with s_block(WRITE_MSG_FAKE_BODY_NAME):
+        s_dword(1, name=SEC_CH_ID_PRIM_NAME, fuzzable=False)  #from  create callback
+        s_dword(2, name=SEC_TOKEN_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        s_dword(3, name=SEC_SEQ_NUM_PRIM_NAME, fuzzable=False) #from create callback
+        s_dword(4, name=SEC_REQ_ID_PRIM_NAME, fuzzable=False)  #from create callback
+        # type id  b'\x01\x00\xa1\x02 > a102 > 02a1 > 673
+        s_bytes(b'\x01\x00' + struct.pack('<H', WRITE_MSG_TYPE_ID), name='Type id', fuzzable=False)
+        #req header
+        s_bytes(b'\x04', name='Encoding mask guid', fuzzable=False)
+        s_bytes(b'\x01\x00', name='Namespace idx', fuzzable=False)        
+        s_bytes(b'\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff', name=ID_GUID_NAME, fuzzable=False) #from create callback
+        s_qword(opcua_time(), name='timestamp', fuzzable=False)
+        s_dword(1, name='Request handle', fuzzable=False)
+        s_dword(0, name='Return diagnostics', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='Audit entry id', fuzzable=False)
+        s_dword(10000, name='Timeout hint', fuzzable=False)
+        s_bytes(b'\x00\x00\x00', name='Additional Header', fuzzable=False)
+        # Nodes to write
+        s_dword(1, name='Array size', fuzzable=False)
+        # Node ID
+        s_bytes(b'\x03', name='Encoding mask NodeID', fuzzable=False)
+        s_bytes(b'\x01\x00', name='Namespace idx NodeID', fuzzable=False)
+        s_dword(len('aName'), name='Variable Name length', fuzzable=False)
+        s_bytes('aName'.encode('utf-8'), name='Variable Name', fuzzable=False)
+        s_dword(13, name='AttributeID Value', fuzzable=False)
+        s_bytes(b'\xff\xff\xff\xff', name='Index Range NodeID', fuzzable=False)
+        s_bytes(b'\x01', name='Encoding mask Value', fuzzable=False) # 01=hasValue
+        s_bytes(b'\x06', name='Value Type', fuzzable=False) # 06=Int32
+        s_random('xxx', name='Int32 Value', num_mutations=1)        # Malformed packet
+write_variable_msg_nf.__doc__ = "Fake Sngle Write - Used to get answer from previous message in the graph and pick up the variables name"
 
 
 # 37 Services:
