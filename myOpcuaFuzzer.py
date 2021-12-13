@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from ctypes import sizeof
-from os import write
+from os import truncate, write
 from fuzzConstants import HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE, PROC_MON_PORT
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
@@ -38,11 +38,6 @@ servVars = []
 test_info_model = False
 PNG_GRAPH_OUT_FILE = './mygraph.png'
 
-def set_test_info_model():
-    test_info_model = True
-
-def get_test_info_model():
-    return test_info_model
 
 # -----------------------CallBacks------------------
 #TODO callback for endpoint url
@@ -316,7 +311,6 @@ generic_callback.__doc__ = "Callback executed after each session graph test case
 
 
 # -----------------------MAIN---------------------
-# TODO add args to select implementation-test VS information-model-test
 def main():
     # ARGS parsing----------
     parser = ArgumentParser(description='Fuzzing OPC UA server.')
@@ -338,7 +332,9 @@ def main():
         print('Usage : %s ipAddress' % args.addr)
         return
 
-    # MSGs building------------------------------
+
+    
+    # Basic MSGs building------------------------------
     if(args.info):      # TEST INFORMATION MODEL
         hello_msg_nf()
         open_msg_nf()
@@ -348,9 +344,6 @@ def main():
         activate_session_msg_nf()
         # read_objects_msg_nf()
         browse_objects_msg_nf()
-        #if (servVars):          # List not empty, can fuzz the writes
-            #print_dbg('arranging second run for information model fuzzing..')
-            #write_variable_msg() # TODO run the write with the variable name found(foreach)
 
     else:               # TEST IMPLEMENTATION
         hello_msg()
@@ -361,12 +354,37 @@ def main():
         activate_session_msg()
         read_objects_msg()
         browse_objects_msg()
-    
+
+    session = build_session(args.info, HOST_ADDR, OPC_UA_PORT)
+    # session graph PNG creation
+    with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
+        file.write(session.render_graph_graphviz().create_png())
+
+    try:
+        if (args.info):     # TEST INFORMATION MODEL
+            print_dbg('fuzzing information model')
+            session.fuzz() # first run finds variables, second run fuzz the write_msg
+            print_dbg('server vars ' + str(servVars))
+            for var in servVars:
+                session = build_session(args.info,  HOST_ADDR, OPC_UA_PORT, var)
+                session.fuzz()
+        else:               # TEST IMPLEMENTATION
+            print_dbg('fuzzing implementation')
+            session.fuzz()
+    except KeyboardInterrupt:
+        pass
+
+def build_session(infoModelFlag, host, port, variableName=None) -> Session:
+    if (variableName != None):
+            write_variable_msg(variableName)
+    else:
+        write_variable_msg_nf()
 
     # SESSION building------------------------------
+    session = None
     session = Session(
         target=Target(
-            connection=TCPSocketConnection(str(HOST_ADDR), OPC_UA_PORT)),
+            connection=TCPSocketConnection(str(host), port)),
         #post_test_case_callbacks=[generic_callback], #executed at the end of the chain
         sleep_time=0, #sleep at the end of the graph
         receive_data_after_fuzz=True, #receive last response if there is
@@ -382,7 +400,6 @@ def main():
     session.connect(s_get(HELLO_MSG_NAME))
     session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)# ACK callback only for debug
 
-    #'''
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
 
@@ -391,40 +408,17 @@ def main():
     
     #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(READ_MSG_NAME), callback=create_callback)
 
-    if(args.info):      # TEST INFORMATION MODEL
+    if (infoModelFlag):                 # TEST INFORMATION MODEL
         session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(BROWSE_MSG_NAME), callback=create_callback)
-        session.connect(s_get(BROWSE_MSG_NAME), s_get(CLOSE_MSG_NAME))
+        #session.connect(s_get(BROWSE_MSG_NAME), s_get(CLOSE_MSG_NAME))
+        if (variableName == None):
+            session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_FAKE_NAME), callback=create_callback)
+        else:
+            session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
     else:
         session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
-    #'''
 
-    
-    # session graph PNG creation
-    with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
-        file.write(session.render_graph_graphviz().create_png())
-
-    try:
-        if (args.info):     # TEST INFORMATION MODEL
-            #servVars.clear()
-            # TODO fix repetitions - if I do a first session fuzz with WRITE_MSG_FAKE_NAME, it remains in the chain for the second run. this could not be a problem due to the rep_num of the WRITE_MSG_FAKE_NAME --> analyze this point
-            print_dbg('fuzzing information model')
-            write_variable_msg_nf()
-            session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_FAKE_NAME), callback=create_callback)
-
-            session.fuzz() # first run finds variables, second run fuzz the write_msg
-            print_dbg('server vars ' + str(servVars))
-            '''if (servVars):
-                print_dbg('fuzzing writing variables...')
-
-                write_variable_msg() # TODO run the write with the variable name found(foreach)
-                session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
-                session.fuzz() # second run for variable fuzzing'''
-        else:               # TEST IMPLEMENTATION
-            print_dbg('fuzzing implementation')
-            session.fuzz()
-    except KeyboardInterrupt:
-        pass
-
+    return session
 
 if __name__ == "__main__":
     main()

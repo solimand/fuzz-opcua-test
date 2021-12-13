@@ -605,7 +605,6 @@ def browse_objects_msg_nf():
 
 
 # -----------------------WRITE VAR MSG---------------------
-# TODO variableName from Browse msg
 # TODO variableValue type
 def write_variable_msg(varName='the.answer'):
     s_initialize(WRITE_MSG_NAME)
