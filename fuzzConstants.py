@@ -1,5 +1,5 @@
 # connection and commons
-ENDPOINT_STRING = 'opc.tcp://localhost:4840/'.encode('utf-8') #TODO form this string based on the args
+ENDPOINT_STRING = 'opc.tcp://localhost:4840/'.encode('utf-8')
 CHUNK_TYPE = b'F'
 UNIX_TIME = 116444736000000000  # January 1, 1970
 COMMON_MSG_TYPE = b'MSG'

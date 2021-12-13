@@ -359,7 +359,6 @@ def create_session_msg_nf():
 
 
 # -----------------------ACTIVATE SESSION MSG---------------------
-#TODO see what I can fuzz here (for now only timestamp)
 def activate_session_msg():
     s_initialize(ACTIVATE_SESSION_MSG_NAME)
 
@@ -402,7 +401,7 @@ def activate_session_msg():
             # AnonymousIdentityToken: AnonymousIdentityToken (size+string)'''
         s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_NUM_ID), name='user type id', fuzzable=False)
         s_bytes(b'\x01', name='Encoding mask user id', fuzzable=False)
-        s_dword(30, name='an int', fuzzable=False) # TODO I don't know the meaning of this int
+        s_dword(30, name='an int', fuzzable=False)
         s_dword(len(ACTIVATE_SESSION_MSG_POLICY_ID), name='Policy id length', fuzzable=False)
         s_bytes(ACTIVATE_SESSION_MSG_POLICY_ID, name='Policy id', fuzzable=False)
         ''' OLD VERSION
@@ -459,7 +458,7 @@ def activate_session_msg_nf():
         s_bytes(ACTIVATE_SESSION_MSG_LOCALE_ID_STRING, name='Locale id', fuzzable=False)
         s_bytes(b'\x01\x00' + struct.pack('<H', ACTIVATE_SESSION_MSG_NUM_ID), name='user type id', fuzzable=False)
         s_bytes(b'\x01', name='Encoding mask user id', fuzzable=False)
-        s_dword(30, name='an int', fuzzable=False) # TODO I don't know the meaning of this int
+        s_dword(30, name='an int', fuzzable=False)
         s_dword(len(ACTIVATE_SESSION_MSG_POLICY_ID), name='Policy id length', fuzzable=False)
         s_bytes(ACTIVATE_SESSION_MSG_POLICY_ID, name='Policy id', fuzzable=False)
         # UserTokenSignature: SignatureData
@@ -605,7 +604,6 @@ def browse_objects_msg_nf():
 
 
 # -----------------------WRITE VAR MSG---------------------
-# TODO variableValue type
 def write_variable_msg(varName='the.answer'):
     s_initialize(WRITE_MSG_NAME)
 

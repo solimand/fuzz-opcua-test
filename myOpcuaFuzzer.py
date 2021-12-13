@@ -39,12 +39,9 @@ from pprint import pprint #print obj attributes -> pprint(vars(obj))
 # global vars that must survive to callback execs
 auth_token_read_req = ''
 servVars = []
-test_info_model = False
 PNG_GRAPH_OUT_FILE = './mygraph.png'
 
-
 # -----------------------CallBacks------------------
-#TODO callback for endpoint url
 def open_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
     if not res:
@@ -65,8 +62,6 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
         request_header_length = 8 + 4 + 4 + 1 + 4 + 3 #(24)
         token_offset = sequence_offset + 8 + 4 + request_header_length + 4 #(24+8+4+24+4=64)
         sec_channel_id, token_id = struct.unpack('ii', res[token_offset:token_offset + 8])
-        #print_dbg("sequence num  "+str(seq_num)+" req id "+str(req_id))
-        #print_dbg("sec ch id "+str(sec_channel_id)+" token id "+str(token_id))
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response')    
     else:
@@ -115,11 +110,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             # following two couples of 2B are reversed AB CD -> BA DC
             # last 8B are the same as on wire
 
-        # I don't need further decoding/encoding (struct.unpack) because I must send them as Bytes
-        #sessId_IdGuid_string = struct.unpack('16c', res[55:71])
-        #print_dbg('sessid string plain' + str(sessId_IdGuid_string))
-
-        #sessId_plain = res[55:71] # I don't know if in future I will need the sessionID 
+        #sessId_plain = res[55:71] # I may need sessionID in the future
         #print_dbg('sessid plain ' + str(sessId_plain))
         authId_plain = res[74:90]
         if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
@@ -130,7 +121,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
             print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
-            # in my chain activate_sess_req always follows a create_sess_res
+            # in my chain activate_sess_req always follows a create_sess_res:
             #   I save the token only when a new create_sess_res occurs
             global auth_token_read_req
             auth_token_read_req = authId_plain
@@ -208,9 +199,6 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                     startDimVarName = expandedNodeIdMask + 3
                     endDimVarName = startDimVarName + 4
                     dimVarName = struct.unpack('i', res[startDimVarName:endDimVarName])[0]
-                    '''startVarName = endDimVarName
-                    endVarName = startVarName + dimVarName
-                    varName = res[startVarName:endVarName].decode("utf-8")'''
                     endVarName = endDimVarName + dimVarName
                     varName = res[endDimVarName:endVarName].decode("utf-8")
                     print_dbg('var name: '+varName)# ok -> save these vars for WRITE_RES
@@ -225,9 +213,6 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                     startSizeQualifiedName = startBrowseName + 3
                 endSizeQualifiedName = startSizeQualifiedName + 4
                 sizeQualifiedName = struct.unpack('i', res[startSizeQualifiedName:endSizeQualifiedName])[0]
-                '''startQualifiedName = endSizeQualifiedName
-                endQualifiedName = startQualifiedName + sizeQualifiedName
-                qualifiedName = res[startQualifiedName:endQualifiedName].decode("utf-8")'''
                 endQualifiedName = endSizeQualifiedName + sizeQualifiedName
                 qualifiedName = res[endSizeQualifiedName:endQualifiedName].decode("utf-8")
                 print_dbg('qual name ' + str(x) + ' ' + qualifiedName)
@@ -259,9 +244,6 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 endSizeLocText = startSizeLocText + 4
                 sizeLocText = struct.unpack('i', res[startSizeLocText:endSizeLocText])[0]
                 #print_dbg('size loc txt '+str(sizeLocText))
-                '''startLocText = endSizeLocText
-                endLocText = startLocText + sizeLocText
-                locTxt = res[startLocText:endLocText].decode("utf-8")'''
                 endLocText = endSizeLocText + sizeLocText
                 locTxt = res[endSizeLocText:endLocText].decode("utf-8")
                 print_dbg('loc txt ' + locTxt)
@@ -306,7 +288,6 @@ def generic_callback(target, fuzz_data_logger, session, node=None, *_, **__):
     msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
     if (msg_type == ERR_MSG_TYPE):
         print_dbg("ERR received!")
-        #TODO kinds of error
     elif (msg_type == OPEN_MSG_TYPE):
         print_dbg("OPN received!")
     elif (msg_type == ACK_MSG_TYPE):
@@ -335,7 +316,6 @@ def main():
     except:
         print('Usage : %s ipAddress' % args.addr)
         return
-
 
     
     # Basic MSGs building------------------------------
@@ -397,9 +377,9 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
         #post_test_case_callbacks=[generic_callback], #executed at the end of the chain
         sleep_time=0, #sleep at the end of the graph
         receive_data_after_fuzz=True, #receive last response if there is
-        keep_web_open=False, #close web UI at the end of the graph
+        keep_web_open=True, #close web UI at the end of the graph
         #web_port=None,
-        index_start=1, index_end=1,     #single run
+        #index_start=1, index_end=1,     #single run
         #index_start=2270*140*280,      #start at certain point
         #index_start=0, index_end=3,     #single run
         #index_end=293
