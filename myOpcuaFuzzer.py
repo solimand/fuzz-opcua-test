@@ -2,6 +2,10 @@
 
 from ctypes import sizeof
 from os import truncate, write
+import boofuzz
+from boofuzz import blocks
+
+from six import print_
 from fuzzConstants import HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE, PROC_MON_PORT
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
@@ -366,6 +370,11 @@ def main():
             session.fuzz() # first run finds variables, second run fuzz the write_msg
             print_dbg('server vars ' + str(servVars))
             for var in servVars:
+                # A 'Write' block already exists, I delete it before build_session can add it with a new variableName
+                try:
+                    del blocks.REQUESTS[WRITE_MSG_NAME]
+                except:
+                    pass
                 session = build_session(args.info,  HOST_ADDR, OPC_UA_PORT, var)
                 session.fuzz()
         else:               # TEST IMPLEMENTATION
