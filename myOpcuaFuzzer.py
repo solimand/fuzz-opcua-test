@@ -191,7 +191,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 if (res[expandedNodeIdMask] == 0): # two B encoded numeric
                     startBrowseName = expandedNodeIdMask + 1
                 elif (res[expandedNodeIdMask] == 1): # four B encoded numeric
-                    startBrowseName = expandedNodeIdMask + 3
+                    startBrowseName = expandedNodeIdMask +4 #+ 3
                 elif (res[expandedNodeIdMask] == 2): # numeric of arbitrary lenght
                     startBrowseName = expandedNodeIdMask + 6
                 elif (res[expandedNodeIdMask] == 3): # 1B mask + 2B namespace - 4B dim + string
@@ -212,11 +212,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 else:
                     startSizeQualifiedName = startBrowseName + 3
                 endSizeQualifiedName = startSizeQualifiedName + 4
-                # TODO FIX:
-                #problem in the container browse answer third variable
                 sizeQualifiedName = struct.unpack('i', res[startSizeQualifiedName:endSizeQualifiedName])[0]
-                print_dbg('qual name size ' + str(x) + ' ' + str(sizeQualifiedName))
-
                 endQualifiedName = endSizeQualifiedName + sizeQualifiedName
                 qualifiedName = res[endSizeQualifiedName:endQualifiedName].decode("utf-8")
                 print_dbg('qual name ' + str(x) + ' ' + qualifiedName)
