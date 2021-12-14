@@ -6,6 +6,7 @@
 - fuzzing of variables at a depth level > 1
 - fuzzing of methods
 - fuzzing variable values type different from Int32
+- Concurrence problem \[asyncIO\] ```RuntimeError: This event loop is already running``` when I start to fuzz other variables after browsing them
 
 # IMPLEMENTATION FUZZING
 - Fuzzing other service sets...

@@ -5,7 +5,7 @@ from os import truncate, write
 import boofuzz
 from boofuzz import blocks
 
-from six import print_
+#from six import print_
 from fuzzConstants import HELLO_MSG_NAME, OPEN_MSG_NAME, ACK_MSG_TYPE, ERR_MSG_TYPE, OPEN_MSG_TYPE, PROC_MON_PORT
 
 from fuzzConstants import CLOSE_MSG_SEQ_NUM_NODE_FIELD, CLOSE_MSG_TOKEN_ID_NODE_FIELD, CLOSE_MSG_SEC_CH_ID_NODE_FIELD, CLOSE_MSG_SEQ_REQ_ID_NODE_FIELD, CLOSE_MSG_BODY_NAME, CLOSE_MSG_NAME
@@ -212,7 +212,11 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
                 else:
                     startSizeQualifiedName = startBrowseName + 3
                 endSizeQualifiedName = startSizeQualifiedName + 4
+                # TODO FIX:
+                #problem in the container browse answer third variable
                 sizeQualifiedName = struct.unpack('i', res[startSizeQualifiedName:endSizeQualifiedName])[0]
+                print_dbg('qual name size ' + str(x) + ' ' + str(sizeQualifiedName))
+
                 endQualifiedName = endSizeQualifiedName + sizeQualifiedName
                 qualifiedName = res[endSizeQualifiedName:endQualifiedName].decode("utf-8")
                 print_dbg('qual name ' + str(x) + ' ' + qualifiedName)
@@ -350,7 +354,7 @@ def main():
             session.fuzz() # first run finds variables, second run fuzz the write_msg
             print_dbg('server vars ' + str(servVars))
             for var in servVars:
-                # A 'Write' block already exists, I delete it before build_session can add it with a new variableName
+                # At this point, a 'Write' block already exists from second variable onwards, I delete it before build_session, so it will be possible to add a new Write block (new variableName fuzzing)
                 try:
                     del blocks.REQUESTS[WRITE_MSG_NAME]
                 except:
@@ -379,7 +383,7 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
         receive_data_after_fuzz=True, #receive last response if there is
         keep_web_open=True, #close web UI at the end of the graph
         #web_port=None,
-        #index_start=1, index_end=1,     #single run
+        index_start=1, index_end=1,     #single run
         #index_start=2270*140*280,      #start at certain point
         #index_start=0, index_end=3,     #single run
         #index_end=293
