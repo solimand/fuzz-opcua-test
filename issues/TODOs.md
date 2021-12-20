@@ -17,3 +17,4 @@
 - analyze all the fields of all messages to check what can be fuzzed without errors 
 - meaning of the INT in Activate Session Msg (```s_dword(30, name='an int'```) 
 - fuzz_constants -> ```ENDPOINT_STRING``` based on main args
+- it should be an arg for testing only one service (e.g. --service=hel,opn,cre,...)

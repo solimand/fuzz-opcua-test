@@ -329,7 +329,7 @@ def main():
         # read_objects_msg_nf()
         browse_objects_msg_nf()
 
-    else:               # TEST IMPLEMENTATION
+        '''else:               # TEST IMPLEMENTATION
         hello_msg()
         open_msg()    
         close_msg()    
@@ -337,7 +337,17 @@ def main():
         create_session_msg()
         activate_session_msg()
         read_objects_msg()
-        browse_objects_msg()
+        browse_objects_msg()'''
+    
+    else:               # TEST TEST
+        hello_msg_nf()
+        open_msg()    
+        '''close_msg()    
+        get_endpoints_msg()    
+        create_session_msg()
+        activate_session_msg()
+        read_objects_msg()
+        browse_objects_msg()'''
 
     session = build_session(args.info, HOST_ADDR, OPC_UA_PORT)
     # session graph PNG creation
@@ -379,7 +389,7 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
         receive_data_after_fuzz=True, #receive last response if there is
         keep_web_open=True, #close web UI at the end of the graph
         #web_port=None,
-        index_start=1, index_end=1,     #single run
+        #index_start=1, index_end=1,     #single run
         #index_start=2270*140*280,      #start at certain point
         #index_start=0, index_end=3,     #single run
         #index_end=293
@@ -392,8 +402,8 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
 
-    session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
-    session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)
+    '''session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
+    session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)'''
     
     #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(READ_MSG_NAME), callback=create_callback)
 
@@ -404,8 +414,8 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
             session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_FAKE_NAME), callback=create_callback)
         else:
             session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
-    else:
-        session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
+    '''else:
+        session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)'''
 
     return session
 
