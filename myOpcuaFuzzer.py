@@ -350,9 +350,10 @@ def main():
         browse_objects_msg()'''
 
     session = build_session(args.info, HOST_ADDR, OPC_UA_PORT)
-    # session graph PNG creation
+    
+    '''# session graph PNG creation
     with open(PNG_GRAPH_OUT_FILE, 'wb') as file:
-        file.write(session.render_graph_graphviz().create_png())
+        file.write(session.render_graph_graphviz().create_png())'''
 
     try:
         if (args.info):     # TEST INFORMATION MODEL
@@ -389,7 +390,7 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
         receive_data_after_fuzz=True, #receive last response if there is
         keep_web_open=True, #close web UI at the end of the graph
         #web_port=None,
-        #index_start=1, index_end=1,     #single run
+        index_start=1, index_end=1,     #single run
         #index_start=2270*140*280,      #start at certain point
         #index_start=0, index_end=3,     #single run
         #index_end=293
