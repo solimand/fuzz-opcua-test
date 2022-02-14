@@ -3,6 +3,7 @@
 - ```generic_callback()``` it might be useful to keep track of errors type occurring at the end of each chain
 
 # INFORMATION MODEL FUZZING
+- improvement of create_callback in reading responses
 - fuzzing of variables at a depth level > 1
 - fuzzing of methods
 - fuzzing variable values type different from Int32
