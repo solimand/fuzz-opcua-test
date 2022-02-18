@@ -3,7 +3,8 @@
 - ```generic_callback()``` it might be useful to keep track of errors type occurring at the end of each chain
 
 # INFORMATION MODEL FUZZING
-- improvement of create_callback in reading responses -> try filtering with pyshark
+- improvement of create_callback in reading responses - try filtering with pyshark
+    - with pyshark for example you can do: ```import pyshark``` > ```cap = pyshark.FileCapture(r'file.pcap')``` > ```print(cap[3].opcua.transport_endpoint)``` to read endpoint
 - fuzzing of variables at a depth level > 1
 - fuzzing of methods
 - fuzzing variable values type different from Int32

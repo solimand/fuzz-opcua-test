@@ -22,13 +22,13 @@ from fuzzConstants import BROWSE_MSG_NAME, BROWSE_MSG_BODY_NAME, BROWSE_MSG_SEC_
 
 from fuzzConstants import WRITE_MSG_NAME, WRITE_MSG_FAKE_NAME, WRITE_MSG_BODY_NAME, WRITE_MSG_FAKE_BODY_NAME, WRITE_MSG_SEC_CH_ID_NODE_FIELD, WRITE_MSG_TOKEN_ID_NODE_FIELD, WRITE_MSG_SEQ_NUM_NODE_FIELD, WRITE_MSG_SEQ_REQ_ID_NODE_FIELD, WRITE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD, WRITE_MSG_FAKE_SEC_CH_ID_NODE_FIELD, WRITE_MSG_FAKE_TOKEN_ID_NODE_FIELD, WRITE_MSG_FAKE_SEQ_NUM_NODE_FIELD, WRITE_MSG_FAKE_SEQ_REQ_ID_NODE_FIELD, WRITE_MSG_FAKE_AUTH_TOKEN_ID_GUID_NODE_FIELD
 
-
 from boofuzz import Session, Target, TCPSocketConnection, s_get, ProcessMonitor
 
 from msgDefinitions import print_dbg, hello_msg, hello_msg_nf, open_msg, open_msg_nf, close_msg, close_msg_nf, get_endpoints_msg, get_endpoints_msg_nf, create_session_msg, create_session_msg_nf, activate_session_msg, activate_session_msg_nf, read_objects_msg, browse_objects_msg, browse_objects_msg_nf, write_variable_msg, write_variable_msg_nf
 
 # struct - Interpret bytes as packed binary data -- for callbacks
 import struct
+import time
 
 from argparse import ArgumentParser
 from ipaddress import ip_address
@@ -92,8 +92,40 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
             print('ERR on msg body %s', node.stack[1]._name)
 open_callback.__doc__ = "Callback setting parameters of secure channel"
 
+def get_sec_ch_params(res, fuzz_data_logger):
+    if not res:
+        fuzz_data_logger.log_fail('ERR - empty create response')
+        return
+    try:
+        # msg_type = struct.unpack('3s', res[0:3]) -- print_dbg("msg_type "+str(msg_type[0]))
+        sec_channel_id, token_id, seq_num, req_id = struct.unpack('iiii', res[8:24])
+        authId_plain = res[74:90]
+        return sec_channel_id, token_id, seq_num, req_id , authId_plain
+    except struct.error:
+        fuzz_data_logger.log_error('ERR - could not unpack sec ch params') 
+
+
+def activate_callback(target, fuzz_data_logger, session, node, *_, **__):
+    get_sec_ch_params(session.last_recv, fuzz_data_logger)
+    
 
 def create_callback(target, fuzz_data_logger, session, node, *_, **__):
+    sec_channel_id, token_id, seq_num, req_id , authId_plain = get_sec_ch_params(session.last_recv, fuzz_data_logger)
+    if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
+            print_dbg('activate sess version')
+            node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
+            # in my chain activate_sess_req always follows a create_sess_res:
+            #   I save the token only when a new create_sess_res occurs
+            global auth_token_read_req
+            auth_token_read_req = authId_plain
+
+
+def a_callback(target, fuzz_data_logger, session, node, *_, **__):
+    tic = time.perf_counter()
     res = session.last_recv
     if not res:
         fuzz_data_logger.log_fail('ERR - empty response')
@@ -112,7 +144,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
 
         #sessId_plain = res[55:71] # I may need sessionID in the future
         #print_dbg('sessid plain ' + str(sessId_plain))
-        authId_plain = res[74:90]
+        '''authId_plain = res[74:90]
         if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
             print_dbg('activate sess version')
             node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
@@ -125,7 +157,8 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             #   I save the token only when a new create_sess_res occurs
             global auth_token_read_req
             auth_token_read_req = authId_plain
-        elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):
+        elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):'''
+        if ((node.stack[1]._name == READ_MSG_BODY_NAME)):
             print_dbg('read req version')
             # the msg activate_session_response (occurring before read_request in the fuzzing chain)
             #   has the same security params of create_res but no auth token id
@@ -264,7 +297,13 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             print('ERR on msg body %s', node.stack[1]._name)
     except struct.error:
         fuzz_data_logger.log_error('ERR - could not unpack response') 
+    toc = time.perf_counter()
+    print_dbg("Elapsed TIME = "+str(toc-tic))
 create_callback.__doc__ = "Callback to set the Auth token ID from Create Session Msg. Used for ActivateReq-ReadReq-BrowseReq"
+
+
+def hello_callback2(target, fuzz_data_logger, session, node, *_, **__):
+    print_dbg("print all " + str(session.last_recv))
 
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
@@ -297,6 +336,10 @@ generic_callback.__doc__ = "Callback executed after each session graph test case
 
 # -----------------------MAIN---------------------
 def main():
+    # global configs
+    #nest_asyncio.apply()
+    #asyncio.set_event_loop(asyncio.WindowsProactorEventLoopPolicy())
+
     # ARGS parsing----------
     parser = ArgumentParser(description='Fuzzing OPC UA server.')
     parser.add_argument('addr', metavar='ip-addr', type=str, help='The server host IP address')
@@ -339,14 +382,14 @@ def main():
         read_objects_msg()
         browse_objects_msg()'''
     
-    else:               # TEST TEST
+    else:               # TEST (implementation but only specific msg)
         hello_msg_nf()
-        open_msg()    
+        open_msg_nf()    
         '''close_msg()    
-        get_endpoints_msg()    
-        create_session_msg()
+        get_endpoints_msg()'''    
+        create_session_msg_nf()
         activate_session_msg()
-        read_objects_msg()
+        '''read_objects_msg()
         browse_objects_msg()'''
 
     session = build_session(args.info, HOST_ADDR, OPC_UA_PORT)
@@ -403,19 +446,19 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
     #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
 
-    '''session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
-    session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)'''
+    session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
+    session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)
     
     #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(READ_MSG_NAME), callback=create_callback)
 
-    if (infoModelFlag):                 # TEST INFORMATION MODEL
+    '''if (infoModelFlag):                 # TEST INFORMATION MODEL
         session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(BROWSE_MSG_NAME), callback=create_callback)
         #session.connect(s_get(BROWSE_MSG_NAME), s_get(CLOSE_MSG_NAME))
         if (variableName == None):
             session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_FAKE_NAME), callback=create_callback)
         else:
             session.connect(s_get(BROWSE_MSG_NAME), s_get(WRITE_MSG_NAME), callback=create_callback)
-    '''else:
+    else:
         session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)'''
 
     return session

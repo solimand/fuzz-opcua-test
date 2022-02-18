@@ -1,54 +1,30 @@
-# Message Formats from Wireshark tcpdump
-## OPEN-SECURE-CHANNEL-OPN-Req
-    Message Type: OPN
-    Chunk Type: F
-    Message Size: 133
-    SecureChannelId: 0
-    SecurityPolicyUri: http://opcfoundation.org/UA/SecurityPolicy#None
-    SenderCertificate: <MISSING>[OpcUa Null ByteString]
-    ReceiverCertificateThumbprint: <MISSING>[OpcUa Null ByteString]
-    SequenceNumber: 51
-    RequestId: 1
-    Message : Encodeable Object                                                 --->Not a field
-        TypeId : ExpandedNodeId                                                 --->Not a field
-            NodeId EncodingMask: Four byte encoded Numeric (0x01)               --->01
-            NodeId Namespace Index: 0                                           --->00
-            NodeId Identifier Numeric: OpenSecureChannelRequest (446)           --->01BE--->BE01
-        OpenSecureChannelRequest                                                --->Not a field
-            RequestHeader: RequestHeader                                        --->Not a field
-                AuthenticationToken: NodeId                                     --->Not a field
-                    .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)    --->00
-                    Identifier Numeric: 0                                       --->00
-                Timestamp: Oct 22, 2021 15:23:20.617548700 CEST
-                RequestHandle: 0
-                Return Diagnostics: 0x00000000
-                    .... .... .... ...0 = ServiceLevel / SymbolicId: False
-                    .... .... .... ..0. = ServiceLevel / LocalizedText: False
-                    .... .... .... .0.. = ServiceLevel / AdditionalInfo: False
-                    .... .... .... 0... = ServiceLevel / Inner StatusCode: False
-                    .... .... ...0 .... = ServiceLevel / Inner Diagnostics: False
-                    .... .... ..0. .... = OperationLevel / SymbolicId: False
-                    .... .... .0.. .... = OperationLevel / LocalizedText: False
-                    .... .... 0... .... = OperationLevel / AdditionalInfo: False
-                    .... ...0 .... .... = OperationLevel / Inner StatusCode: False
-                    .... ..0. .... .... = OperationLevel / Inner Diagnostics: False
-                AuditEntryId: [OpcUa Null String]
-                TimeoutHint: 0
-                AdditionalHeader: ExtensionObject                               --->Not a field
-                    TypeId: ExpandedNodeId                                      --->Not a field
-                        EncodingMask: 0x00, EncodingMask: Two byte encoded Numeric--->00
-                            .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
-                            .0.. .... = has server index: False
-                            0... .... = has namespace uri: False
-                        Identifier Numeric: 0                                   --->00
-                    EncodingMask: 0x00                                          --->00
-                        .... ...0 = has binary body: False
-                        .... ..0. = has xml body: False
-            ClientProtocolVersion: 0                                            --->dword
-            SecurityTokenRequestType: Issue (0x00000000)                        --->dword
-            MessageSecurityMode: None (0x00000001)
-            ClientNonce: 00                                                     --->??
-            RequestedLifetime: 300000                                           --->??
+# Common Headers
+## RequestHeader
+| **Name** | **Type** | **Description** |
+|:---:|:---:|:---:|
+| RequestHeader | structure | Common parameters for all requests submitted on a Session. |
+| authenticationToken | Session AuthenticationToken | The secret Session identifier used to verify that the request is associated with the Session. The SessionAuthenticationToken type is defined in 7.31. |
+|    timestamp | UtcTime | The time the Client sent the request. The parameter is only used for diagnostic and logging purposes in the server. |
+|    requestHandle | IntegerId | A requestHandle associated with the request. This Client defined handle can be used to cancel the request. It is also returned in the response. |
+|    returnDiagnostics | UInt32 | A bit mask that identifies the types of vendor-specific diagnostics to be returned in diagnosticInfo response parameters. The  value of this parameter may consist of zero, one or more of the  following values. No value indicates that diagnostics are not to be  returned.    Bit Value			Diagnostics to return    0x0000 0001	ServiceLevel / SymbolicId    0x0000 0002	ServiceLevel / LocalizedText    0x0000 0004	ServiceLevel / AdditionalInfo    0x0000 0008	ServiceLevel / Inner StatusCode    0x0000 0010	ServiceLevel / Inner Diagnostics    0x0000 0020	OperationLevel / SymbolicId    0x0000 0040	OperationLevel / LocalizedText    0x0000 0080	OperationLevel / AdditionalInfo    0x0000 0100	OperationLevel / Inner StatusCode    0x0000 0200	OperationLevel / Inner Diagnostics Each of these values is composed of two components, level and type,  as described below. If none are requested, as indicated by a 0 value,  or if no diagnostic information was encountered in processing of the  request, then diagnostics information is not returned. Level:    ServiceLevel	return diagnostics in the diagnosticInfo of the Service.    OperationLevel	return diagnostics in the diagnosticInfo defined for individual operations requested in the Service.  Type:    SymbolicId 		return a namespace-qualified, symbolic identifier for an error or  condition. The maximum length of this identifier is 32 characters.    LocalizedText	return up to 256 bytes of localized text that describes the symbolic id.    AdditionalInfo 	return a byte string that contains additional diagnostic information,  such as a memory image. The format of this byte string is  vendor-specific, and may depend on the type of error or condition  encountered.    InnerStatusCode	return the inner StatusCode associated with the operation or Service.    InnerDiagnostics	return the inner diagnostic info associated with the operation or Service.  The contents of the inner diagnostic info structure are determined by  other bits in the mask. Note that setting this bit could cause multiple  levels of nested diagnostic info structures to be returned.                     |
+|    auditEntryId | String | An identifier that identifies the Client’s security audit log entry associated with this request. An empty string value means that this parameter is not used. The auditEntryId typically contains who initiated the action and from where it was initiated. The auditEntryId is included in the AuditEvent to allow human readers to correlate an Event with the initiating action. More details of the Audit mechanisms are defined in 6.5 and in OPC 10000-3. |
+|    timeoutHint | UInt32 | This timeout in milliseconds is used in the Client side Communication Stack to set the timeout on a per-call base. For a Server  this timeout is only a hint and can be used to cancel long running  operations to free resources. If the Server detects a timeout, he can  cancel the operation by sending the Service result Bad_Timeout. The Server should wait at minimum the timeout after he received the request before cancelling the operation. The Server shall check the timeoutHint parameter of a Publish request before processing a Publish response. If the request timed out, a Bad_Timeout Service result is sent and another Publish request is used.  The value of 0 indicates no timeout. |
+|    additionalHeader | Extensible Parameter AdditionalHeader | Reserved for future use. Applications that do not understand the header should ignore it. |
+
+## ResponseHeader
+| **Name** | **Type** | **Description** |
+|:---:|:---:|:---:|
+| ResponseHeader | structure | Common parameters for all responses. |
+|    timestamp | UtcTime | The time the Server sent the response. |
+|    requestHandle | IntegerId | The requestHandle given by the Client to the request. |
+|    serviceResult | StatusCode | OPC UA-defined result of the Service invocation. The StatusCode type is defined in 7.34. |
+|    serviceDiagnostics | DiagnosticInfo | Diagnostic information for the Service invocation. This parameter is empty if diagnostics information was not requested in the request header. The DiagnosticInfo type is defined in 7.8. |
+|    stringTable [] | String | There is one string in this list for each unique namespace,  symbolic identifier, and localized text string contained in all of the  diagnostics information parameters contained in the response (see 7.8). Each is identified within this table by its zero-based index. |
+|    additionalHeader | Extensible Parameter AdditionalHeader | Reserved for future use. Applications that do not understand the header should ignore it. |
+
+
+
+
 
 ## CLOSE-MSG-Req
     Message Type: CLO

@@ -1,0 +1,44 @@
+IDEA: callback calls pyshark (that uses tshark) for packet dissection. Scapy can be used for type transformations.
+    + PRO: easy code writing
+    + CONS: worse performance
+
+def create_callback2(target, fuzz_data_logger, session, node, *_, **__):
+    tic = time.perf_counter()
+    '''import asyncio
+    import nest_asyncio
+    import io
+    import os
+    import pyshark
+    from scapy.utils import *'''
+    # from bin to hexdump
+    old_stdout = sys.stdout
+    new_stdout = io.StringIO()
+    sys.stdout = new_stdout
+    hexdump(session.last_recv)
+    output = new_stdout.getvalue()
+    sys.stdout = old_stdout
+    # from hexdump to pcap
+    '''inputinmem = io.StringIO(output)
+    inputinmem.name="myinput"
+    outinmem = io.BytesIO()
+    outinmem.name="myoutput"'''
+    #print(inputinmem.read())
+    inputfile = r"C:\Users\Soli\Desktop\scapyout.txt"
+    outfile=r"C:\Users\Soli\Desktop\txt2pcapout.pcap"
+    fd_read, fd_write = os.pipe() # side of the same pipe
+    out_read, out_write = os.pipe()   
+    #os.fdopen(fd_read, 'w')#, 
+    os.fdopen(fd_write, 'w')
+    os.fdopen(out_write, 'w')
+    os.write(fd_write, output)
+    #subprocess.run(["text2pcap.exe", "-T", "60000,4840", inputfile , outfile])
+    subprocess.run(["text2pcap.exe", "-T", "60000,4840", fd_read , out_write])
+    # from pcap to fields
+    #cap = pyshark.FileCapture(r"C:\Users\Soli\Desktop\txt2pcapout.pcap")
+    cap = pyshark.FileCapture(out_read)
+    print(cap[0])
+    fd_write.close(), out_write.close()
+    '''inputinmem.close()
+    outinmem.close()'''
+    toc = time.perf_counter()
+    print_dbg("Elapsed TIME = "+str(toc-tic))
