@@ -23,173 +23,34 @@
 |    additionalHeader | Extensible Parameter AdditionalHeader | Reserved for future use. Applications that do not understand the header should ignore it. |
 
 
+# C/S Communication Protocol
+## Client initiated comm protocol
+OPC client initiatied comm protocol
 
+```
+Client                      Server
+                HEL-->
+                <--ACK
 
+        OPEN Req (sec ch)-->
+        <--OPEN Res (sec ch)
 
-## CLOSE-MSG-Req
-    Message Type: CLO
-    Chunk Type: F
-    Message Size: 57
-    SecureChannelId: 3
-    Security Token Id: 4
-    Security Sequence Number: 53
-    Security RequestId: 3
-    Message : Encodeable Object
-        TypeId : ExpandedNodeId
-            NodeId EncodingMask: Four byte encoded Numeric (0x01)
-            NodeId Namespace Index: 0
-            NodeId Identifier Numeric: CloseSecureChannelRequest (452)
-        CloseSecureChannelRequest
-            RequestHeader: RequestHeader
-                AuthenticationToken: NodeId
-                    .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
-                    Identifier Numeric: 0
-                Timestamp: Oct 22, 2021 15:23:20.618928300 CEST
-                RequestHandle: 0
-                Return Diagnostics: 0x00000000
-                    .... .... .... ...0 = ServiceLevel / SymbolicId: False
-                    .... .... .... ..0. = ServiceLevel / LocalizedText: False
-                    .... .... .... .0.. = ServiceLevel / AdditionalInfo: False
-                    .... .... .... 0... = ServiceLevel / Inner StatusCode: False
-                    .... .... ...0 .... = ServiceLevel / Inner Diagnostics: False
-                    .... .... ..0. .... = OperationLevel / SymbolicId: False
-                    .... .... .0.. .... = OperationLevel / LocalizedText: False
-                    .... .... 0... .... = OperationLevel / AdditionalInfo: False
-                    .... ...0 .... .... = OperationLevel / Inner StatusCode: False
-                    .... ..0. .... .... = OperationLevel / Inner Diagnostics: False
-                AuditEntryId: [OpcUa Null String]
-                TimeoutHint: 0
-                AdditionalHeader: ExtensionObject
-                    TypeId: ExpandedNodeId
-                        EncodingMask: 0x00, EncodingMask: Two byte encoded Numeric
-                            .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
-                            .0.. .... = has server index: False
-                            0... .... = has namespace uri: False
-                        Identifier Numeric: 0
-                    EncodingMask: 0x00
-                        .... ...0 = has binary body: False
-                        .... ..0. = has xml body: False
+        CREATE Req (sess)-->
+        <--CREATE Res (sess)
 
-## GET-ENDPOINTS-MSG-Req
-    Message Type: MSG
-    Chunk Type: F
-    Message Size: 100
-    SecureChannelId: 3
-    Security Token Id: 4
-    Security Sequence Number: 52
-    Security RequestId: 2
-    OpcUa Service : Encodeable Object                                           --->Not field
-        TypeId : ExpandedNodeId                                                 --->Not field
-            NodeId EncodingMask: Four byte encoded Numeric (0x01)               --->01
-            NodeId Namespace Index: 0                                           --->00
-            NodeId Identifier Numeric: GetEndpointsRequest (428)                --->??
-        GetEndpointsRequest                                                     --->Not field
-            RequestHeader: RequestHeader                                        --->Not field
-                AuthenticationToken: NodeId                                     --->Not field
-                    .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)    --->00
-                    Identifier Numeric: 0                                       --->00
-                Timestamp: Oct 22, 2021 15:23:20.618189700 CEST
-                RequestHandle: 1
-                Return Diagnostics: 0x00000000
-                    .... .... .... ...0 = ServiceLevel / SymbolicId: False
-                    .... .... .... ..0. = ServiceLevel / LocalizedText: False
-                    .... .... .... .0.. = ServiceLevel / AdditionalInfo: False
-                    .... .... .... 0... = ServiceLevel / Inner StatusCode: False
-                    .... .... ...0 .... = ServiceLevel / Inner Diagnostics: False
-                    .... .... ..0. .... = OperationLevel / SymbolicId: False
-                    .... .... .0.. .... = OperationLevel / LocalizedText: False
-                    .... .... 0... .... = OperationLevel / AdditionalInfo: False
-                    .... ...0 .... .... = OperationLevel / Inner StatusCode: False
-                    .... ..0. .... .... = OperationLevel / Inner Diagnostics: False
-                AuditEntryId: [OpcUa Null String]
-                TimeoutHint: 10000
-                AdditionalHeader: ExtensionObject
-                    TypeId: ExpandedNodeId
-                        EncodingMask: 0x00, EncodingMask: Two byte encoded Numeric
-                            .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
-                            .0.. .... = has server index: False
-                            0... .... = has namespace uri: False
-                        Identifier Numeric: 0
-                    EncodingMask: 0x00
-                        .... ...0 = has binary body: False
-                        .... ..0. = has xml body: False
-            EndpointUrl: opc.tcp://150.140.188.188:4840/
-            LocaleIds: Array of String
-                ArraySize: 0
-            ProfileUris: Array of String
-                ArraySize: 0
+        ACTIVATE Req (sess)-->
+        <--ACTIVATE Res (sess)
 
-## Activate-Session-Msg-Req
-    Message Type: MSG
-    Chunk Type: F
-    Message Size: 146
-    SecureChannelId: 47
-    Security Token Id: 47
-    Security Sequence Number: 53
-    Security RequestId: 3
-    OpcUa Service : Encodeable Object
-        TypeId : ExpandedNodeId
-            NodeId EncodingMask: Four byte encoded Numeric (0x01)
-            NodeId Namespace Index: 0
-            NodeId Identifier Numeric: ActivateSessionRequest (467)
-        ActivateSessionRequest
-            RequestHeader: RequestHeader
-                AuthenticationToken: NodeId
-                    .... 0100 = EncodingMask: GUID (0x4)
-                    Namespace Index: 1
-                    Identifier Guid: c7bd3734-2a3a-374a-75a7-0a00a8da6d26
-                Timestamp: Nov  9, 2021 10:41:58.370239500 CET
-                RequestHandle: 1000002
-                Return Diagnostics: 0x00000000
-                AuditEntryId: [OpcUa Null String]
-                TimeoutHint: 10000
-                AdditionalHeader: ExtensionObject
-                    TypeId: ExpandedNodeId
-                        EncodingMask: 0x00, EncodingMask: Two byte encoded Numeric
-                            .... 0000 = EncodingMask: Two byte encoded Numeric (0x0)
-                            .0.. .... = has server index: False
-                            0... .... = has namespace uri: False
-                        Identifier Numeric: 0
-                    EncodingMask: 0x00
-                        .... ...0 = has binary body: False
-                        .... ..0. = has xml body: False
-            ClientSignature: SignatureData
-                Algorithm: [OpcUa Null String]
-                Signature: <MISSING>[OpcUa Null ByteString]
-            ClientSoftwareCertificates: Array of SignedSoftwareCertificate
-                ArraySize: 0
-            LocaleIds: Array of String
-                ArraySize: 1
-                [0]: LocaleIds: en-US
-            UserIdentityToken: ExtensionObject
-                TypeId: ExpandedNodeId
-                    EncodingMask: 0x01, EncodingMask: Four byte encoded Numeric
-                        .... 0001 = EncodingMask: Four byte encoded Numeric (0x1)
-                        .0.. .... = has server index: False
-                        0... .... = has namespace uri: False
-                    Namespace Index: 0
-                    Identifier Numeric: 321
-                EncodingMask: 0x01, has binary body
-                    .... ...1 = has binary body: True
-                    .... ..0. = has xml body: False
-                AnonymousIdentityToken: AnonymousIdentityToken
-                    PolicyId: open62541-anonymous-policy
-            UserTokenSignature: SignatureData
-                Algorithm: [OpcUa Null String]
-                Signature: <MISSING>[OpcUa Null ByteString]
+        READ Req-->
+        <--READ res
 
+        CLOSE Sess Req-->
+        <--CLOSE Sess Res
 
+        CLOSE Sec Ch Req-->
+        <--CLOSE Sec ch Res
+```
 
-# Create Session Req/Res
-## Service Parameters
-| Name |       Type       |    Description    | 
-|:------:|:------------------:|:-----------------:|
-| clientNonce      | ByteString           |   A random number that should never be used in any other request. This number shall have a minimum length of **32 bytes**. Profiles may increase the required length. The Server shall use this value to prove possession of its Application Instance Certificate in the response. |
-
-## Create Session Res Msg
-Has two identifier IDs:
-- Session ID = printed by server in output 
-- Auth token ID = used inside the next Activate Session Request
 
 # Read Request MSG
 ## Browse the AddressSpace default nodes (all servers have)
@@ -199,7 +60,7 @@ The default NodeIDs of every AddressSpace
 - ns=0, i =86 --> Types 
 - ns=0, i =87 --> Views
 
-## Read Val ID in read Req MSG
+## Read Val ID in 'Read Req MSG'
 The field ReadValID has following sub-fields:
 - NodeID (xB) identifies the kind of NodeID (two bytes integer 0000, four bytes integer 0001, string 0011 ...) and the value of NodeID (2B, 4B, len(str))
 - AttributeID (4B)
@@ -242,56 +103,115 @@ Every node in an OPC UA information model contains attributes depending on the n
 |UserRolePermissions|25|
 |AccessLevelEx|27
 
-# Browse service
-## Browse service parameters REQ
-| Name |    Type    |   Descr   |
-|-:|:-:|:-:|
-|requestHeader|RequestHeader|Common request parameters (see 7.28 for RequestHeader definition).
-|View|ViewDescription|Description of the View to browse (see 7.39 for ViewDescription definition). An empty ViewDescription value indicates the entire AddressSpace. Use of the empty ViewDescription value causes all References of the nodesToBrowse to be returned. Use of any other View causes only the References of the nodesToBrowse that are defined for that View to be returned.|
-|requestedMax References PerNode|Counter|Indicates the maximum number of references to return for each starting Node specified in the request. The value 0 indicates that the Client is imposing no limitation (see 7.5 for Counter definition).|
-|nodesToBrowse []|BrowseDescription|A list of nodes to Browse. This structure is defined in-line with the following indented items.|
-|nodeId|NodeId|NodeId of the Node to be browsed. If a view is provided, it shall include this Node.
-|browseDirection|Enum BrowseDirection|An enumeration that specifies the direction of References to follow. It has the following values: FORWARD_0 select only forward References. INVERSE_1 select only inverse References. BOTH_2 select forward and inverse References. INVALID_3 no value specified. The returned References do indicate the direction the Server followed in the isForward parameter of the ReferenceDescription. Symmetric References are always considered to be in forward direction therefore the isForward flag is always set to TRUE and symmetric References are not returned if browseDirection is set to INVERSE_1.|
-|referenceTypeId|NodeId|Specifies the NodeId of the ReferenceType to follow. Only instances of this ReferenceType or its subtypes are returned. If not specified then all References are returned and includeSubtypes is ignored.|
-|includeSubtypes|Boolean|Indicates whether subtypes of the ReferenceType should be included in the browse. If TRUE, then instances of referenceTypeId and all of its subtypes are returned.
-|nodeClassMask|UInt32|Specifies the NodeClasses of the TargetNodes. Only TargetNodes with the selected NodeClasses are returned. The NodeClasses are assigned the following bits: 0=Object, 1=Variable, 2=Method, 3=ObjectType, 4=VariableType, 5=ReferenceType, 6=DataType, 7=View. If set to zero, then all NodeClasses are returned. If the NodeClass is unknown for a remote Node, the nodeClassMask is ignored.|
-|resultMask|UInt32|Specifies the fields in the ReferenceDescription structure that should be returned. The fields are assigned the following bits: 0=ReferenceType, 1=IsForward, 2=NodeClass, 3=BrowseName, 4=DisplayName, 5=TypeDefinition.The ReferenceDescription type is defined in 7.25.|
-## Browse service parameters RES
-| Name |    Type    |   Descr   |
-|-:|:-:|:-:|
-|responseHeader|Response Header|Common response parameters (see 7.29 for ResponseHeader definition).
-|results []|BrowseResult|A list of BrowseResults. The size and order of the list matches the size and order of the nodesToBrowse specified in the request. The BrowseResult type is defined in 7.3.
-|diagnosticInfos []|Diagnostic Info|List of diagnostic information for the results (see 7.8 for DiagnosticInfo definition). The size and order of the list matches the size and order of the results response parameter. This list is empty if diagnostics information was not requested in the request header or if no diagnostic information was encountered in processing of the request.|
 
-# C/S Communication Protocol
-## Client initiated comm protocol
-OPC client initiatied comm protocol
+# Common Service Result Codes
+| **Symbolic Id** | Description |
+|:---:|:---:|
+| Good | The operation was successful. |
+| Good_CompletesAsynchronously | The processing will complete asynchronously. |
+| Good_SubscriptionTransferred | The subscription was transferred to another session. |
+|   |   |
+| Bad_CertificateHostNameInvalid | The HostName used to connect to a Server does not match a HostName in the Certificate. |
+| Bad_CertificateChainIncomplete | The Certificate chain is incomplete. |
+| Bad_CertificateIssuerRevocationUnknown | It was not possible to determine if the Issuer Certificate has been revoked. |
+| Bad_CertificateIssuerUseNotAllowed | The Issuer Certificate may not be used for the requested operation. |
+| Bad_CertificateIssuerTimeInvalid | An Issuer Certificate has expired or is not yet valid. |
+| Bad_CertificateIssuerRevoked | The Issuer Certificate has been revoked. |
+| Bad_CertificateInvalid | The Certificate provided as a parameter is not valid. |
+| Bad_CertificateRevocationUnknown | It was not possible to determine if the Certificate has been revoked. |
+| Bad_CertificateRevoked | The Certificate has been revoked. |
+| Bad_CertificateTimeInvalid | The Certificate has expired or is not yet valid. |
+| Bad_CertificateUriInvalid | The URI specified in the ApplicationDescription does not match the URI in the Certificate. |
+| Bad_CertificateUntrusted | The Certificate is not trusted. |
+| Bad_CertificateUseNotAllowed | The Certificate may not be used for the requested operation. |
+| Bad_CommunicationError | A low level communication error occurred. |
+| Bad_DataTypeIdUnknown | The ExtensionObject cannot be (de)serialized because the data type id is not recognized. |
+| Bad_DecodingError | Decoding halted because of invalid data in the stream. |
+| Bad_EncodingError | Encoding halted because of invalid data in the objects being serialized. |
+| Bad_EncodingLimitsExceeded | The message encoding/decoding limits imposed by the Communication Stack have been exceeded. |
+|   |   |
+| Bad_IdentityTokenInvalid | The user identity token is not valid. |
+| Bad_IdentityTokenRejected | The user identity token is valid but the Server has rejected it. |
+| Bad_InternalError | An internal error occurred as a result of a programming or configuration error. |
+| Bad_InvalidArgument | One or more arguments are invalid. Each service defines parameter-specific StatusCodes and these StatusCodes shall be used instead of this general error code. This error code shall be used only by the Communication Stack and in services where it is defined in the list of valid StatusCodes for the service. |
+| Bad_InvalidState | The operation cannot be completed because the object is closed, uninitialized or in some other invalid state. |
+| Bad_InvalidTimestamp | The timestamp is outside the range allowed by the Server. |
+| Bad_LicenseExpired | The UA Server requires a license to operate in general or to perform a service or operation, but existing license is expired |
+| Bad_LicenseLimitsExceeded | The UA Server has limits on number of allowed operations /  objects, based on installed licenses, and these limits where exceeded. |
+| Bad_LicenseNotAvailable | The UA Server does not have a license which is required to operate in general or to perform a service or operation. |
+| Bad_NothingToDo | There was nothing to do because the Client passed a list of operations with no elements. |
+| Bad_OutOfMemory | Not enough memory to complete the operation. |
+| Bad_RequestCancelledByClient | The request was cancelled by the client. |
+| Bad_RequestTooLarge | The request message size exceeds limits set by the Server. |
+| Bad_ResponseTooLarge | The response message size exceeds limits set by the client. |
+| Bad_RequestHeaderInvalid | The header for the request is missing or invalid. |
+| Bad_ResourceUnavailable | An operating system resource is not available. |
+| Bad_SecureChannelIdInvalid | The specified secure channel is no longer valid. |
+| Bad_SecurityChecksFailed | An error occurred while verifying security. |
+| Bad_ServerHalted | The Server has stopped and cannot process any requests. |
+| Bad_ServerNotConnected | The operation could not complete because the Client is not connected to the Server. |
+| Bad_ServerUriInvalid | The Server URI is not valid. |
+| Bad_ServiceUnsupported | The Server does not support the requested service. |
+| Bad_SessionIdInvalid | The Session id is not valid. |
+| Bad_SessionClosed | The Session was closed by the client. |
+| Bad_SessionNotActivated | The Session cannot be used because ActivateSession has not been called. |
+| Bad_Shutdown | The operation was cancelled because the application is shutting down. |
+| Bad_SubscriptionIdInvalid | The subscription id is not valid. |
+| Bad_Timeout | The operation timed out. |
+| Bad_TimestampsToReturnInvalid | The timestamps to return parameter is invalid. |
+| Bad_TooManyOperations | The request could not be processed because it specified too many operations. |
+| Bad_UnexpectedError | An unexpected error occurred. |
+| Bad_UnknownResponse | An unrecognized response was received from the Server. |
+| Bad_UserAccessDenied | User does not have permission to perform the requested operation. |
+| Bad_ViewIdUnknown | The view id does not refer to a valid view Node. |
+| Bad_ViewTimestampInvalid | The view timestamp is not available or not supported. |
+| Bad_ViewParameterMismatchInvalid | The view parameters are not consistent with each other. |
+| Bad_ViewVersionInvalid | The view version is not available or not supported. |
 
-```
-Client                      Server
-                HEL-->
-                <--ACK
-
-        OPEN Req (sec ch)-->
-        <--OPEN Res (sec ch)
-
-        CREATE Req (sess)-->
-        <--CREATE Res (sess)
-
-        ACTIVATE Req (sess)-->
-        <--ACTIVATE Res (sess)
-
-        READ Req-->
-        <--READ res
-
-        CLOSE Sess Req-->
-        <--CLOSE Sess Res
-
-        CLOSE Sec Ch Req-->
-        <--CLOSE Sec ch Res
-```
-
-# DEfault Errors & Error Codes (TODO)
-- BadDecodingError -> occurs when (...); error code (...)
-- BadInternalError -> occurs when (...); error code (...)
-- BadSecureChannelIdInvalid -> occurs when (...); error code (...)
+# Common Operation Level Result Codes
+| **Symbolic Id** | **Description** |
+|:---:|:---:|
+| Good_Clamped | The value written was accepted but was clamped. |
+| Good_Overload | Sampling has slowed down due to resource limitations. |
+| Uncertain | The value is uncertain but no specific reason is known. |
+| Bad | The value is bad but no specific reason is known. |
+| Bad_AttributeIdInvalid | The attribute is not supported for the specified node. |
+| Bad_BrowseDirectionInvalid | The browse direction is not valid. |
+| Bad_BrowseNameInvalid | The browse name is invalid. |
+| Bad_ContentFilterInvalid | The content filter is not valid. |
+| Bad_ContinuationPointInvalid | The continuation point provided is no longer valid. This status is returned if the continuation point was deleted or the address space was changed between the browse calls. |
+| Bad_DataEncodingInvalid | The data encoding is invalid. This result is used if no dataEncoding can be applied because an Attribute other than Value was requested or the DataType of the Value Attribute is not a subtype of the Structure DataType. |
+| Bad_DataEncodingUnsupported | The Server does not support the requested data encoding for the node. This result is used if a dataEncoding can be applied but the passed data encoding is not known to the Server. |
+| Bad_EventFilterInvalid | The event filter is not valid. |
+| Bad_FilterNotAllowed | A monitoring filter cannot be used in combination with the attribute specified. |
+| Bad_FilterOperandInvalid | The operand used in a content filter is not valid. |
+| Bad_HistoryOperationInvalid | The history details parameter is not valid. |
+| Bad_HistoryOperationUnsupported | The Server does not support the requested operation. |
+| Bad_IndexRangeInvalid | The syntax of the index range parameter is invalid. |
+| Bad_IndexRangeNoData | No data exists within the range of indexes specified. |
+| Bad_MonitoredItemFilterInvalid | The monitored item filter parameter is not valid. |
+| Bad_MonitoredItemFilterUnsupported | The Server does not support the requested monitored item filter. |
+| Bad_MonitoredItemIdInvalid | The monitoring item id does not refer to a valid monitored item. |
+| Bad_MonitoringModeInvalid | The monitoring mode is invalid. |
+| Bad_NoCommunication | Communication with the data source is defined, but not established, and there is no last known value available. This  status/sub-status is used for cached values before the first value is  received or for Write and Call if the communication is not established. |
+| Bad_NoContinuationPoints | The operation could not be processed because all continuation points have been allocated. |
+| Bad_NodeClassInvalid | The node class is not valid. |
+| Bad_NodeIdInvalid | The syntax of the node id is not valid. |
+| Bad_NodeIdUnknown | The node id refers to a node that does not exist in the Server address space. |
+| Bad_NoDeleteRights | The Server will not allow the node to be deleted. |
+| Bad_NodeNotInView | The nodesToBrowse is not part of the view. |
+| Bad_NotFound | A requested item was not found or a search operation ended without success. |
+| Bad_NotImplemented | Requested operation is not implemented. |
+| Bad_NotReadable | The access level does not allow reading or subscribing to the Node. |
+| Bad_NotSupported | The requested operation is not supported. |
+| Bad_NotWritable | The access level does not allow writing to the Node. |
+| Bad_ObjectDeleted | The Object cannot be used because it has been deleted. |
+| Bad_OutOfRange | The value was out of range. |
+| Bad_ReferenceTypeIdInvalid | The reference type id does not refer to a valid reference type node. |
+| Bad_SecurityModeInsufficient | The SecurityPolicy and/or MessageSecurityMode do not match the Server requirements to complete the operation. For  example, a user may have the right to receive the data but the data can  only be transferred through an encrypted channel with an appropriate SecurityPolicy. |
+| Bad_SourceNodeIdInvalid | The source node id does not refer to a valid node. |
+| Bad_StructureMissing | A mandatory structured parameter was missing or null. |
+| Bad_TargetNodeIdInvalid | The target node id does not refer to a valid node. |
+| Bad_TypeDefinitionInvalid | The type definition node id does not reference an appropriate type node. |
+| Bad_TypeMismatch | The value supplied for the attribute is not of the same type as the attribute’s value. |
+| Bad_WaitingForInitialData | Waiting for the Server to obtain values from the underlying data source. After creating a MonitoredItem or after setting the MonitoringMode from DISABLED to REPORTING or SAMPLING, it may take some time for the Server to actually obtain values for these items. In such cases the Server can send a Notification with this status prior to the Notification with the first value or status from the data source. |

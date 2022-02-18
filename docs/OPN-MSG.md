@@ -2,7 +2,7 @@
 - This Service is used to open or renew a SecureChannel that can be used to ensure Confidentiality and Integrity for Message exchange during a Session. 
 - Each SecureChannel has a globally-unique identifier and is valid for a specific combination of Client and Server application instances. 
 
-## Wireshark Request
+## Wireshark Request example
     OpcUa Binary Protocol
     Message Type: OPN
     Chunk Type: F

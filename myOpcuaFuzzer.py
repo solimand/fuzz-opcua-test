@@ -106,7 +106,7 @@ def get_sec_ch_params(res, fuzz_data_logger):
 
 
 def activate_callback(target, fuzz_data_logger, session, node, *_, **__):
-    get_sec_ch_params(session.last_recv, fuzz_data_logger)
+    sec_channel_id, token_id, seq_num, req_id = get_sec_ch_params(session.last_recv, fuzz_data_logger)
     
 
 def create_callback(target, fuzz_data_logger, session, node, *_, **__):
