@@ -42,6 +42,20 @@ servVars = []
 PNG_GRAPH_OUT_FILE = './mygraph.png'
 
 # -----------------------CallBacks------------------
+def get_sec_ch_params(res, fuzz_data_logger):
+    if not res:
+        fuzz_data_logger.log_fail('ERR - empty create response')
+        return
+    try:
+        # msg_type = struct.unpack('3s', res[0:3]) -- print_dbg("msg_type "+str(msg_type[0]))
+        sec_channel_id, token_id, seq_num, req_id = struct.unpack('iiii', res[8:24])
+        authId_plain = res[74:90]
+        return sec_channel_id, token_id, seq_num, req_id, authId_plain
+    except struct.error:
+        fuzz_data_logger.log_error('ERR - could not unpack sec ch params') 
+get_sec_ch_params.__doc__ = "get security channel parameter from binary format response"
+
+
 def open_callback(target, fuzz_data_logger, session, node, *_, **__):
     res = session.last_recv
     if not res:
@@ -92,25 +106,36 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
             print('ERR on msg body %s', node.stack[1]._name)
 open_callback.__doc__ = "Callback setting parameters of secure channel"
 
-def get_sec_ch_params(res, fuzz_data_logger):
-    if not res:
-        fuzz_data_logger.log_fail('ERR - empty create response')
-        return
-    try:
-        # msg_type = struct.unpack('3s', res[0:3]) -- print_dbg("msg_type "+str(msg_type[0]))
-        sec_channel_id, token_id, seq_num, req_id = struct.unpack('iiii', res[8:24])
-        authId_plain = res[74:90]
-        return sec_channel_id, token_id, seq_num, req_id , authId_plain
-    except struct.error:
-        fuzz_data_logger.log_error('ERR - could not unpack sec ch params') 
+#TODO browse information model, destroy and recreate session
+def browse_callback(target, fuzz_data_logger, session, *_, **__):
+    print_dbg("browse res " + str(session.last_recv))
+    return
 
 
 def activate_callback(target, fuzz_data_logger, session, node, *_, **__):
-    sec_channel_id, token_id, seq_num, req_id = get_sec_ch_params(session.last_recv, fuzz_data_logger)
-    
+    sec_channel_id, token_id, seq_num, req_id, _ = get_sec_ch_params(session.last_recv, fuzz_data_logger)
+    if ((node.stack[1]._name == READ_MSG_BODY_NAME)):
+            print_dbg('read req version')
+            # the msg activate_session_response (occurring before read_request in the fuzzing chain)
+            #   has the same security params of create_res but no auth token id
+            node.names[READ_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[READ_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[READ_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[READ_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            node.names[READ_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
+    elif ((node.stack[1]._name == BROWSE_MSG_BODY_NAME)):
+            print_dbg('browse req version')
+            # the msg activate_session_response (occurring before browse_request in the fuzzing chain)
+            #   has the same security params of create_res but no auth token id
+            node.names[BROWSE_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
+            node.names[BROWSE_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
+            node.names[BROWSE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
+            node.names[BROWSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
+            node.names[BROWSE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
+activate_callback.__doc__ = "Callback to set the Auth token ID from Activate Session Res"
 
 def create_callback(target, fuzz_data_logger, session, node, *_, **__):
-    sec_channel_id, token_id, seq_num, req_id , authId_plain = get_sec_ch_params(session.last_recv, fuzz_data_logger)
+    sec_channel_id, token_id, seq_num, req_id, authId_plain = get_sec_ch_params(session.last_recv, fuzz_data_logger)
     if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
             print_dbg('activate sess version')
             node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
@@ -122,7 +147,7 @@ def create_callback(target, fuzz_data_logger, session, node, *_, **__):
             #   I save the token only when a new create_sess_res occurs
             global auth_token_read_req
             auth_token_read_req = authId_plain
-
+create_callback.__doc__ = "Callback to set the Auth token ID from Create Session Res"
 
 def a_callback(target, fuzz_data_logger, session, node, *_, **__):
     tic = time.perf_counter()
@@ -157,8 +182,7 @@ def a_callback(target, fuzz_data_logger, session, node, *_, **__):
             #   I save the token only when a new create_sess_res occurs
             global auth_token_read_req
             auth_token_read_req = authId_plain
-        elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):'''
-        if ((node.stack[1]._name == READ_MSG_BODY_NAME)):
+        elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):
             print_dbg('read req version')
             # the msg activate_session_response (occurring before read_request in the fuzzing chain)
             #   has the same security params of create_res but no auth token id
@@ -176,7 +200,8 @@ def a_callback(target, fuzz_data_logger, session, node, *_, **__):
             node.names[BROWSE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
             node.names[BROWSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
             node.names[BROWSE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
-        elif ((node.stack[1]._name == WRITE_MSG_BODY_NAME)):
+        elif ((node.stack[1]._name == WRITE_MSG_BODY_NAME)):'''
+        if ((node.stack[1]._name == WRITE_MSG_BODY_NAME)):
             print_dbg('write req version')
             # the msg browse_response (occurring before write_request in the fuzzing chain)
             #   has the same security params of create_res but no auth token id
@@ -299,11 +324,6 @@ def a_callback(target, fuzz_data_logger, session, node, *_, **__):
         fuzz_data_logger.log_error('ERR - could not unpack response') 
     toc = time.perf_counter()
     print_dbg("Elapsed TIME = "+str(toc-tic))
-create_callback.__doc__ = "Callback to set the Auth token ID from Create Session Msg. Used for ActivateReq-ReadReq-BrowseReq"
-
-
-def hello_callback2(target, fuzz_data_logger, session, node, *_, **__):
-    print_dbg("print all " + str(session.last_recv))
 
 
 def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
@@ -311,9 +331,8 @@ def hello_callback(target, fuzz_data_logger, session, node, *_, **__):
     if not res:
         fuzz_data_logger.log_fail('ERR - empty response')
         return
-    msg_type_tuple = struct.unpack('ccc', res[0:3])
-    msg_type = msg_type_tuple[0]+msg_type_tuple[1]+msg_type_tuple[2]
-    if (msg_type == ACK_MSG_TYPE):
+    msg_type = struct.unpack('3s', res[0:3])
+    if (msg_type[0] == ACK_MSG_TYPE):
         print_dbg("ACK received!")
 hello_callback.__doc__ = "Callback to check the ACK"
 
@@ -384,11 +403,12 @@ def main():
     
     else:               # TEST (implementation but only specific msg)
         hello_msg_nf()
-        open_msg_nf()    
+        open_msg_nf()
         '''close_msg()    
         get_endpoints_msg()'''    
         create_session_msg_nf()
-        activate_session_msg()
+        activate_session_msg_nf()
+        browse_objects_msg()
         '''read_objects_msg()
         browse_objects_msg()'''
 
@@ -429,6 +449,7 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
         target=Target(
             connection=TCPSocketConnection(str(host), port)),
         #post_test_case_callbacks=[generic_callback], #executed at the end of the chain
+        post_test_case_callbacks=[browse_callback], #executed at the end of the chain having browse as last msg
         sleep_time=0, #sleep at the end of the graph
         receive_data_after_fuzz=True, #receive last response if there is
         keep_web_open=True, #close web UI at the end of the graph
@@ -441,13 +462,17 @@ def build_session(infoModelFlag, host, port, variableName=None) -> Session:
 
     # GRAPH building------------------------------
     session.connect(s_get(HELLO_MSG_NAME))
-    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)# ACK callback only for debug
+    #session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME), callback=hello_callback)# ACK callback only for debug
+    session.connect(s_get(HELLO_MSG_NAME), s_get(OPEN_MSG_NAME))
 
-    #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
     #session.connect(s_get(OPEN_MSG_NAME), s_get(GET_ENDPOINTS_MSG_NAME), callback=open_callback)
+    #session.connect(s_get(OPEN_MSG_NAME), s_get(CLOSE_MSG_NAME), callback=open_callback)
 
     session.connect(s_get(OPEN_MSG_NAME), s_get(CREATE_SESSION_MSG_NAME), callback=open_callback)
     session.connect(s_get(CREATE_SESSION_MSG_NAME), s_get(ACTIVATE_SESSION_MSG_NAME), callback=create_callback)
+
+    session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(BROWSE_MSG_NAME), callback=activate_callback)
+
     
     #session.connect(s_get(ACTIVATE_SESSION_MSG_NAME), s_get(READ_MSG_NAME), callback=create_callback)
 

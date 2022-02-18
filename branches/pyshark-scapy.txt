@@ -1,4 +1,7 @@
 IDEA: callback calls pyshark (that uses tshark) for packet dissection. Scapy can be used for type transformations.
+    + from binary ---(scapy)---> hexdump ---(text2pcap)---> pcap
+        - I need a way (pipe or inmem) to not save intermediate files on hexdump
+        - ISSUE: pyshark InMemCapture uses asynch as my (boofuzz) session, there is a conflict
     + PRO: easy code writing
     + CONS: worse performance
 
