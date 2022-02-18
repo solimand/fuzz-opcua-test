@@ -19,5 +19,8 @@ optional arguments:
 - WINDOWS Only: install curses from [source](https://www.lfd.uci.edu/~gohlke/pythonlibs/#curses)g
 
 ## Environment for testing
-- Download and run the container ```docker pull open62541/open62541:master```
+- Download and run the container with the server implementations
+  - for open62541 > ```docker pull msolimandounibo/opcua-os-servers:open62541_v1.0``` > ```docker run -d -it -p 4840:4840 --name openopcua msolimandounibo/opcua-os-servers:open62541_v1.0```
+  - for python opcua > ```docker pull msolimandounibo/opcua-os-servers:pythopcua_v1.0``` > ```docker run -d -it -p 4840:4840 --name openopcua msolimandounibo/opcua-os-servers:pythopcua_v1.0```
 - create a virtual env ```python3 -m venv env``` activate (fish) ```source ./env/bin/activate.fish``` install dependencies ```pip install -r requirements.txt```
+- launch with python command and specified address (container or localhost:<redirection_port>) and port (container exposed port)
