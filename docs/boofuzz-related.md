@@ -27,6 +27,7 @@ The edge between the src and dst.
 pgraph.Edge
 
 ### example_test_case_callback(target, fuzz_data_logger, session, test_case_context, *args, **kwargs)
+NOTE [v 0.4.1] a callback used as post_test_case_callback does not have test_case_context arg
 Example call signature for methods given to connect() or register_post_test_case_callback()
 Parameters
 * ```target (Target)``` – Target with sock-like interface.

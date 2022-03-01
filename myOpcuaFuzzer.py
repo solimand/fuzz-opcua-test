@@ -3,6 +3,7 @@
 from ctypes import sizeof
 from os import truncate, write
 import boofuzz
+import datetime
 from boofuzz import blocks
 
 #from six import print_
@@ -106,9 +107,32 @@ def open_callback(target, fuzz_data_logger, session, node, *_, **__):
             print('ERR on msg body %s', node.stack[1]._name)
 open_callback.__doc__ = "Callback setting parameters of secure channel"
 
-#TODO browse information model, destroy and recreate session
-def browse_callback(target, fuzz_data_logger, session, *_, **__):
-    print_dbg("browse res " + str(session.last_recv))
+# returns number of B to skip
+def read_enc_mask(mask):
+    switcher = {
+        0: 1, # ??
+        1: 4, # four byte encoded numeric
+        # ...
+    }    
+    return switcher.get(mask, "nothing")    
+
+
+#TODO browse information model, destroy and recreate session def(read string, read encoding)
+def browse_callback(target, fuzz_data_logger, session, *_, **__): 
+    res = session.last_recv
+    #sec_channel_id, token_id, seq_num, req_id, _ = get_sec_ch_params(res, fuzz_data_logger)
+
+    typeid_nodeid_encMask = res[24]
+    expandedNodeID_size = read_enc_mask(typeid_nodeid_encMask)
+
+    resHeader_time_end = 24+expandedNodeID_size+8 # 8B timestamp size
+    resHeader_reqHandler_end = resHeader_time_end+4 # 4B integer
+    resHeader_serviceResult_end = resHeader_reqHandler_end+4 # 4B 
+    resHeader_serviceDiagnostic = resHeader_serviceResult_end +1 
+    resHeader_arrayOfString_end = resHeader_serviceDiagnostic + 4
+
+    #TODO resHeader_addHeader...
+    print_dbg("arrayofstr " + str(res[resHeader_arrayOfString_end-4:resHeader_arrayOfString_end].hex()))
     return
 
 
@@ -168,39 +192,7 @@ def a_callback(target, fuzz_data_logger, session, node, *_, **__):
             # last 8B are the same as on wire
 
         #sessId_plain = res[55:71] # I may need sessionID in the future
-        #print_dbg('sessid plain ' + str(sessId_plain))
-        '''authId_plain = res[74:90]
-        if (node.stack[1]._name == ACTIVATE_SESSION_MSG_BODY_NAME):
-            print_dbg('activate sess version')
-            node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
-            node.names[ACTIVATE_SESSION_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
-            node.names[ACTIVATE_SESSION_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
-            node.names[ACTIVATE_SESSION_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
-            node.names[ACTIVATE_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = authId_plain
-            print_dbg("sec ch from node names " + str(node.names[ACTIVATE_SESSION_MSG_SEC_CH_ID_NODE_FIELD]))
-            # in my chain activate_sess_req always follows a create_sess_res:
-            #   I save the token only when a new create_sess_res occurs
-            global auth_token_read_req
-            auth_token_read_req = authId_plain
-        elif ((node.stack[1]._name == READ_MSG_BODY_NAME)):
-            print_dbg('read req version')
-            # the msg activate_session_response (occurring before read_request in the fuzzing chain)
-            #   has the same security params of create_res but no auth token id
-            node.names[READ_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
-            node.names[READ_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
-            node.names[READ_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
-            node.names[READ_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
-            node.names[READ_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
-        elif ((node.stack[1]._name == BROWSE_MSG_BODY_NAME)):
-            print_dbg('browse req version')
-            # the msg activate_session_response (occurring before browse_request in the fuzzing chain)
-            #   has the same security params of create_res but no auth token id
-            node.names[BROWSE_MSG_SEC_CH_ID_NODE_FIELD]._default_value = sec_channel_id
-            node.names[BROWSE_MSG_TOKEN_ID_NODE_FIELD]._default_value = token_id
-            node.names[BROWSE_MSG_SEQ_NUM_NODE_FIELD]._default_value = seq_num +1
-            node.names[BROWSE_MSG_SEQ_REQ_ID_NODE_FIELD]._default_value = req_id +1
-            node.names[BROWSE_MSG_AUTH_TOKEN_ID_GUID_NODE_FIELD]._default_value = auth_token_read_req
-        elif ((node.stack[1]._name == WRITE_MSG_BODY_NAME)):'''
+        #print_dbg('sessid plain ' + str(sessId_plain))        
         if ((node.stack[1]._name == WRITE_MSG_BODY_NAME)):
             print_dbg('write req version')
             # the msg browse_response (occurring before write_request in the fuzzing chain)
