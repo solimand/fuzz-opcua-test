@@ -24,3 +24,8 @@ optional arguments:
   - for python opcua > ```docker pull msolimandounibo/opcua-os-servers:pythopcua_v1.0``` > ```docker run -d -it -p 4840:4840 --name openopcua msolimandounibo/opcua-os-servers:pythopcua_v1.0```
 - create a virtual env ```python3 -m venv env``` activate (fish) ```source ./env/bin/activate.fish``` install dependencies ```pip install -r requirements.txt```
 - launch with python command and specified address (container or localhost:<redirection_port>) and port (container exposed port)
+
+
+# Main TODOs
+- arrange single msg fuzz (check which fields mutate)
+- asynch issues with Information Model fuzz
